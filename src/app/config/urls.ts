@@ -230,5 +230,6 @@ export const urls = {
 	locationsOfProjectsUrl: "Project/GetLocationsOfProjects",
 	addFundingUrl: "Funding/AddFunding",
 	deleteFundingUrl: "Funding/DeleteFunding/",
-	getFundingByProjectIdUrl: "Funding/GetByProjectId/"
+	getFundingByProjectIdUrl: "Funding/GetByProjectId/",
+	hangfireAuthenticate: "HangfireAuth/authenticate"
 };

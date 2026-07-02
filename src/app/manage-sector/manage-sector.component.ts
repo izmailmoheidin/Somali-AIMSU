@@ -33,9 +33,14 @@ export class ManageSectorComponent implements OnInit {
   requestNo: number = 0;
   isError: boolean = false;
   model = { id: 0, sectorTypeId: 0, sectorName: null, parentId: 0 };
-  childModel = { childSectorId: null };
+  superParentModel = { sectorTypeId: 0, sectorName: null };
+  parentSectorModel = { sectorTypeId: 0, sectorName: null, parentId: 0 };
+  childSectorModel = { sectorTypeId: 0, sectorName: null, parentId: 0 };
+  superParents: any = [];
+  parentSectors: any = [];
+  activeTab: string = 'superParent';
   permissions: any = {};
-  @BlockUI() blockUI: NgBlockUI;
+  @BlockUI() blockUI!: NgBlockUI;
 
   constructor(private sectorService: SectorService, private route: ActivatedRoute,
     private router: Router, private errorModal: ErrorModalComponent,
@@ -50,24 +55,26 @@ export class ManageSectorComponent implements OnInit {
     }
     this.storeService.newReportItem(Settings.dropDownMenus.management);
     if (this.route.snapshot.data && this.route.snapshot.data.isForEdit) {
-      var id = this.route.snapshot.params["{id}"];
+      const id = this.route.snapshot.params['{id}'];
       if (id) {
         this.model.id = id;
       }
     }
-    
+
     this.getSectorTypes();
     if (this.model.id != 0) {
-        this.btnText = 'Save Sector';
-        this.sectorTabText = 'Edit sector';
-        this.isForEdit = true;
-        this.sectorId = id;
-        this.isDvDisabled = false;
-        setTimeout(() => {
-          this.loadSectorData();
-          this.getSectorChildren(id);
-        }, 1000);
+      this.btnText = 'Save Sector';
+      this.sectorTabText = 'Edit sector';
+      this.isForEdit = true;
+      this.sectorId = this.model.id;
+      this.isDvDisabled = false;
+      this.activeTab = 'edit';
+      setTimeout(() => {
+        this.loadSectorData();
+        this.getSectorChildren(this.model.id.toString());
+      }, 1000);
     } else {
+      this.activeTab = 'superParent';
       this.isLoading = false;
     }
 
@@ -84,12 +91,16 @@ export class ManageSectorComponent implements OnInit {
     this.sectorTypeService.getSectorTypesList().subscribe(
       data => {
         if (data) {
-          var sectorTypesList = data;
-          var sectorType = sectorTypesList.filter(s => s.isPrimary == true);
-          this.sectorTypes = sectorTypesList.filter(s => s.isPrimary == true || s.isSourceType == false);
-          this.editableSectorTypes = this.sectorTypes.map(t => t.id)
-          if (sectorType.length > 0) {
-            this.model.sectorTypeId = sectorType[0].id;
+          const sectorTypesList = data;
+          const defaultSectorType = sectorTypesList.filter((s: any) => s.isPrimary == true);
+          this.sectorTypes = sectorTypesList.filter((s: any) => s.isPrimary == true || s.isSourceType == false);
+          this.editableSectorTypes = this.sectorTypes.map((t: any) => t.id);
+          if (defaultSectorType.length > 0) {
+            const defaultTypeId = defaultSectorType[0].id;
+            this.model.sectorTypeId = defaultTypeId;
+            this.superParentModel.sectorTypeId = defaultTypeId;
+            this.parentSectorModel.sectorTypeId = defaultTypeId;
+            this.childSectorModel.sectorTypeId = defaultTypeId;
             this.getSectors();
           }
         }
@@ -102,15 +113,65 @@ export class ManageSectorComponent implements OnInit {
       data => {
         if (data) {
           this.allSectors = data;
-          this.sectors = this.allSectors.filter(s => s.sectorTypeId == this.model.sectorTypeId && s.parentSector == null);
+          this.sectors = this.allSectors.filter((s: any) => s.sectorTypeId == this.model.sectorTypeId && s.parentSector == null);
+          this.filterSuperParentOptions(this.superParentModel.sectorTypeId);
+          this.filterParentOptions(this.childSectorModel.sectorTypeId);
         }
       }
     );
   }
 
-  filterParentSectors() {
-    if (this.model.sectorTypeId > 0) {
-      this.sectors = this.allSectors.filter(s => s.sectorTypeId == this.model.sectorTypeId && s.parentSector == null);
+  getSectorById(id: number) {
+    return this.allSectors.find((s: any) => s.id == id);
+  }
+
+  getRootSectors(typeId: number) {
+    if (typeId <= 0) {
+      return [];
+    }
+    return this.allSectors.filter((s: any) => s.sectorTypeId == typeId && (!s.parentId || s.parentId == 0));
+  }
+
+  getSuperParentSectors(typeId: number) {
+    if (typeId <= 0) {
+      return [];
+    }
+    // Super-parents are stored at root level in the same table.
+    // Return all root sectors (actual super-parents will be a subset stored in DB later).
+    return this.getRootSectors(typeId);
+  }
+
+  filterSuperParentOptions(typeId: number) {
+    this.superParents = this.getSuperParentSectors(typeId);
+  }
+
+  filterParentOptions(typeId: number) {
+    if (typeId > 0) {
+      // Use root sectors as the source of truth for parents.
+      const rootSectors = this.getRootSectors(typeId);
+      if (rootSectors.length > 0) {
+        const rootIds = rootSectors.map((s: any) => s.id);
+        // parentSectors are those whose parentId is one of the root sector ids
+        this.parentSectors = this.allSectors.filter((s: any) => s.sectorTypeId == typeId && s.parentId && rootIds.includes(s.parentId));
+        // If no second-level parents exist yet, expose root sectors as possible parents
+        if (this.parentSectors.length === 0) {
+          this.parentSectors = rootSectors;
+        }
+      } else {
+        this.parentSectors = [];
+      }
+    } else {
+      this.parentSectors = [];
+    }
+  }
+
+  setActiveTab(tab: string) {
+    this.activeTab = tab;
+    if (tab === 'parent') {
+      this.filterSuperParentOptions(this.parentSectorModel.sectorTypeId);
+    }
+    if (tab === 'child') {
+      this.filterParentOptions(this.childSectorModel.sectorTypeId);
     }
   }
 
@@ -124,18 +185,16 @@ export class ManageSectorComponent implements OnInit {
       error => {
         console.log(error);
       }
-    )
+    );
   }
 
   loadSectorData() {
     this.sectorService.getSector(this.sectorId.toString()).subscribe(
       data => {
         if (data) {
-          var sectorTypeId = data.sectorTypeId;
-          if (sectorTypeId) {
-            if (!this.editableSectorTypes.includes(sectorTypeId)) {
-              this.router.navigateByUrl('sectors');
-            }
+          const sectorTypeId = data.sectorTypeId;
+          if (sectorTypeId && !this.editableSectorTypes.includes(sectorTypeId)) {
+            this.router.navigateByUrl('sectors');
           }
           this.model.id = data.id;
           this.model.sectorTypeId = data.sectorTypeId;
@@ -145,13 +204,13 @@ export class ManageSectorComponent implements OnInit {
         this.isLoading = false;
       },
       error => {
-        console.log("Request Failed: ", error);
+        console.log('Request Failed: ', error);
       }
     );
   }
 
   saveSector() {
-    var model = {
+    const model = {
       SectorTypeId: parseInt(this.model.sectorTypeId.toString()),
       SectorName: this.model.sectorName,
       ParentId: parseInt(this.model.parentId.toString()),
@@ -161,9 +220,9 @@ export class ManageSectorComponent implements OnInit {
     if (this.isForEdit) {
       this.btnText = 'Updating...';
       this.sectorService.updateSector(this.model.id, model).subscribe(
-        data => {
+        () => {
           if (!this.isError) {
-            var message = 'Sector' + Messages.RECORD_UPDATED;
+            const message = 'Sector' + Messages.RECORD_UPDATED;
             this.storeService.newInfoMessage(message);
             this.router.navigateByUrl('sectors');
           } else {
@@ -179,9 +238,9 @@ export class ManageSectorComponent implements OnInit {
     } else {
       this.btnText = 'Saving...';
       this.sectorService.addSector(model).subscribe(
-        data => {
+        () => {
           if (!this.isError) {
-            var message = 'New sector' + Messages.NEW_RECORD;
+            const message = 'New sector' + Messages.NEW_RECORD;
             this.storeService.newInfoMessage(message);
             this.router.navigateByUrl('sectors');
           } else {
@@ -197,56 +256,101 @@ export class ManageSectorComponent implements OnInit {
     }
   }
 
-  saveChildSector() {
-    this.blockUI.start('Saving sector child...');
-    this.sectorService.setChild(this.model.id.toString(), this.childModel.childSectorId).subscribe(
-      data => {
-        if (data) {
-          var sector = this.sectors.filter(s => s.id == this.childModel.childSectorId);
-          if (sector && sector.length > 0) {
-            var newChild = {
-              id: sector[0].id,
-              sectorName: sector[0].sectorName
-            }
-            this.sectorChildren.push(newChild);
-          }
+  saveSuperParent() {
+    this.isBtnDisabled = true;
+    this.btnText = 'Saving...';
+    const model = {
+      SectorTypeId: parseInt(this.superParentModel.sectorTypeId.toString()),
+      SectorName: this.superParentModel.sectorName,
+      ParentId: 0,
+    };
+
+    this.sectorService.addSector(model).subscribe(
+      () => {
+        if (!this.isError) {
+          const message = 'New super parent sector' + Messages.NEW_RECORD;
+          this.storeService.newInfoMessage(message);
+          this.router.navigateByUrl('sectors');
         } else {
           this.resetFormState();
         }
-        this.blockUI.stop();
       },
       error => {
         this.errorMessage = error;
-        this.errorModal.openModal();
+        this.isError = true;
         this.resetFormState();
-        this.blockUI.stop();
       }
     );
   }
 
-  removeChildSector(id) {
-    this.blockUI.start('Removing sector child...');
-    this.sectorService.removeChild(this.model.id.toString(), id).subscribe(
-      data => {
-        if (data) {
-          var sector = this.sectors.filter(s => s.id == id);
-          if (sector && sector.length > 0) {
-            var newChild = {
-              id: sector[0].id,
-              sectorName: sector[0].sectorName
-            }
-            this.sectorChildren = this.sectorChildren.filter(s => s.id != id);
-          }
+  saveParentSector() {
+    this.isBtnDisabled = true;
+    this.btnText = 'Saving...';
+    const model = {
+      SectorTypeId: parseInt(this.parentSectorModel.sectorTypeId.toString()),
+      SectorName: this.parentSectorModel.sectorName,
+      ParentId: parseInt(this.parentSectorModel.parentId.toString()),
+    };
+
+    this.sectorService.addSector(model).subscribe(
+      () => {
+        if (!this.isError) {
+          const message = 'New parent sector' + Messages.NEW_RECORD;
+          this.storeService.newInfoMessage(message);
+          this.router.navigateByUrl('sectors');
         } else {
           this.resetFormState();
         }
-        this.blockUI.stop();
       },
       error => {
         this.errorMessage = error;
+        this.isError = true;
+        this.resetFormState();
+      }
+    );
+  }
+
+  saveChildSector() {
+    this.isBtnDisabled = true;
+    this.blockUI.start('Saving child sector...');
+    const model = {
+      SectorTypeId: parseInt(this.childSectorModel.sectorTypeId.toString()),
+      SectorName: this.childSectorModel.sectorName,
+      ParentId: parseInt(this.childSectorModel.parentId.toString()),
+    };
+
+    this.sectorService.addSector(model).subscribe(
+      () => {
+        this.blockUI.stop();
+        if (!this.isError) {
+          const message = 'New child sector' + Messages.NEW_RECORD;
+          this.storeService.newInfoMessage(message);
+          this.router.navigateByUrl('sectors');
+        } else {
+          this.resetFormState();
+        }
+      },
+      error => {
+        this.blockUI.stop();
+        this.errorMessage = error;
+        this.isError = true;
+        this.resetFormState();
+      }
+    );
+  }
+
+  removeChildSector(id: number) {
+    this.blockUI.start('Removing sector child...');
+    this.sectorService.removeChild(this.model.id.toString(), id.toString()).subscribe(
+      () => {
+        this.sectorChildren = this.sectorChildren.filter((s: any) => s.id != id);
+        this.blockUI.stop();
+      },
+      error => {
+        this.blockUI.stop();
+        this.errorMessage = error;
         this.errorModal.openModal();
         this.resetFormState();
-        this.blockUI.stop();
       }
     );
   }

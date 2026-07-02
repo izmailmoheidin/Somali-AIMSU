@@ -4,110 +4,227 @@
       <div class="col-md-12">
         <ul class="nav nav-tabs">
           <li class="nav-item">
-            <a class="nav-link text-info" data-toggle="tab" [routerLink]="['/sectors']">Sectors List</a>
+            <a href="#" class="nav-link" [class.active]="activeTab === 'superParent'"
+              (click)="setActiveTab('superParent'); $event.preventDefault()">Super Parent</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active btn-info" data-toggle="tab">{{sectorTabText}}</a>
+            <a href="#" class="nav-link" [class.active]="activeTab === 'parent'"
+              (click)="setActiveTab('parent'); $event.preventDefault()">Parent Sector</a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" [class.active]="activeTab === 'child'"
+              (click)="setActiveTab('child'); $event.preventDefault()">Child Sector</a>
+          </li>
+          <li *ngIf="isForEdit" class="nav-item">
+            <a href="#" class="nav-link" [class.active]="activeTab === 'edit'"
+              (click)="setActiveTab('edit'); $event.preventDefault()">Edit Sector</a>
+          </li>
+          <li class="nav-item ml-auto">
+            <a class="nav-link text-info" [routerLink]="['/sectors']">Sectors List</a>
           </li>
         </ul>
       </div>
     </div>
 
-    <div class="row">
+    <div class="row text-center" *ngIf="isLoading">
+      <div class="col-md-12">
+        <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading...</span>
+      </div>
+    </div>
 
-      <div class="col-sm-12 col-md-6">
+    <div *ngIf="!isLoading" class="row">
+      <div *ngIf="isError" class="col-md-12">
+        <div class="alert alert-danger alert-dismissible">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>Error!</strong> {{errorMessage}}
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'superParent'" class="col-md-6 offset-md-3">
         <div class="card card-signin my-5">
           <div class="card-body">
-            <div *ngIf="isError" class="alert alert-danger alert-dismissible">
-              <button type="button" class="close" data-dismiss="alert">&times;</button>
-              <strong>Error!</strong> {{errorMessage}}
-            </div>
-            <h5 class="card-title text-center">Sector</h5>
-
-            <form class="form-signin" (ngSubmit)="sectorForm.form.valid && saveSector()" #sectorForm="ngForm">
-
+            <h5 class="card-title text-center">Create Super Parent Sector</h5>
+            <form class="form-signin" (ngSubmit)="saveSuperParent()" #superParentForm="ngForm">
               <div class="form-group">
-                <label for="sectorTypeId">Sector Type</label>
-                <select class="form-control" id="sectorTypeId" [(ngModel)]="model.sectorTypeId" name="sectorTypeId"
-                  #sectorTypeId="ngModel" (change)="filterParentSectors()">
+                <label for="superParentTypeId">Sector Type</label>
+                <select class="form-control" id="superParentTypeId" name="superParentTypeId"
+                  [(ngModel)]="superParentModel.sectorTypeId"
+                  (change)="filterSuperParentOptions(superParentModel.sectorTypeId)">
                   <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label for="sectorTypeId">Parent Sector</label>
-                <select class="form-control" id="parentId" [(ngModel)]="model.parentId" name="parentId"
-                  #parentId="ngModel">
-                  <option *ngFor="let sector of sectors" [value]="sector.id">{{sector.sectorName}}</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="text"> Name</label>
-                <input type="text" class="form-control" id="sectorName" [(ngModel)]="model.sectorName" name="sectorName"
-                  #sectorName="ngModel" required>
-                <div *ngIf="sectorForm.submitted" [hidden]="sectorName.valid" class="alert alert-danger">
-                  Sector Name is required
+                <label for="superParentName">Name</label>
+                <input type="text" class="form-control" id="superParentName" name="superParentName"
+                  [(ngModel)]="superParentModel.sectorName" #superParentName="ngModel" required>
+                <div *ngIf="superParentForm.submitted && !superParentName.valid" class="alert alert-danger">
+                  Name is required
                 </div>
               </div>
 
-              <button [class.disable]="isBtnDisabled" class="btn btn-lg btn-info btn-block text-uppercase"
-                type="submit">{{btnText}}</button>
+              <button [disabled]="isBtnDisabled" class="btn btn-lg btn-info btn-block text-uppercase"
+                type="submit">Save Super Parent</button>
             </form>
           </div>
         </div>
       </div>
 
-      <div [class.disable]="model.parentId != 0" class="col-md-6 col-sm-12">
-        <div [class.disable]="isDvDisabled" class="card card-signin my-5">
+      <div *ngIf="activeTab === 'parent'" class="col-md-6 offset-md-3">
+        <div class="card card-signin my-5">
           <div class="card-body">
-            <h5 class="card-title text-center">New Child Sector</h5>
-            <form class="form-signin" (ngSubmit)="childSectorForm.form.valid && saveChildSector()"
-              #childSectorForm="ngForm">
+            <h5 class="card-title text-center">Create Parent Sector</h5>
+            <form class="form-signin" (ngSubmit)="saveParentSector()" #parentSectorForm="ngForm">
+              <div class="form-group">
+                <label for="parentSectorTypeId">Sector Type</label>
+                <select class="form-control" id="parentSectorTypeId" name="parentSectorTypeId"
+                  [(ngModel)]="parentSectorModel.sectorTypeId"
+                  (change)="filterSuperParentOptions(parentSectorModel.sectorTypeId)">
+                  <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
+                </select>
+              </div>
 
               <div class="form-group">
-                <label for="title">Select Child Sector </label>
-                <select class="form-control" id="childSectorId" [(ngModel)]="childModel.childSectorId"
-                  name="childSectorId" #childSectorId="ngModel" required>
-                  <option *ngFor="let sector of sectors" [value]="sector.id">{{sector.sectorName}}</option>
+                <label for="parentSuperParentId">Select Super Parent</label>
+                <select class="form-control" id="parentSuperParentId" name="parentSuperParentId"
+                  [(ngModel)]="parentSectorModel.parentId" #parentSuperParentId="ngModel" required>
+                  <option *ngFor="let sector of superParents" [value]="sector.id">{{sector.sectorName}}</option>
                 </select>
-                <div *ngIf="childSectorForm.submitted" [hidden]="childSectorId.valid" class="alert alert-danger">
-                  Sector is required
+                <div *ngIf="parentSectorForm.submitted && !parentSuperParentId.valid" class="alert alert-danger">
+                  Super Parent is required
+                </div>
+                <div *ngIf="superParents.length === 0" class="text-info mt-2">
+                  <i>No super parent sectors available for the selected type.</i>
                 </div>
               </div>
 
-              <button [class.disable]="isBtnDisabled || isLoading" class="btn btn-lg btn-info btn-block text-uppercase"
-                type="submit">Add Child Sector</button>
+              <div class="form-group">
+                <label for="parentSectorName">Name</label>
+                <input type="text" class="form-control" id="parentSectorName" name="parentSectorName"
+                  [(ngModel)]="parentSectorModel.sectorName" #parentSectorName="ngModel" required>
+                <div *ngIf="parentSectorForm.submitted && !parentSectorName.valid" class="alert alert-danger">
+                  Name is required
+                </div>
+              </div>
+
+              <button [disabled]="isBtnDisabled || superParents.length === 0" class="btn btn-lg btn-info btn-block text-uppercase"
+                type="submit">Save Parent Sector</button>
             </form>
           </div>
         </div>
+      </div>
 
-        <div class="card card-signin">
-          <div class="card-body iati-box">
-            <h5 class="card-title text-center">Child Sectors</h5>
-            <table *ngIf="sectorChildren.length > 0" class="table table-bordered">
-              <tr>
-                <th>Sector</th>
-                <th>Action</th>
-              </tr>
-              <tr *ngFor="let sector of sectorChildren">
-                <td>{{sector.sectorName}}</td>
-                <td>
-                  <a title="Remove from Child" (click)="removeChildSector(sector.id)" class="btn btn-danger"><i
-                      class="fa fa-trash color-white"></i></a>
-                </td>
-              </tr>
-            </table>
-            <div class="text-info" *ngIf="sectorChildren.length == 0">
-              <i>No children sectors available</i>
+      <div *ngIf="activeTab === 'child'" class="col-md-6 offset-md-3">
+        <div class="card card-signin my-5">
+          <div class="card-body">
+            <h5 class="card-title text-center">Create Child Sector</h5>
+            <form class="form-signin" (ngSubmit)="saveChildSector()" #childSectorForm="ngForm">
+              <div class="form-group">
+                <label for="childSectorTypeId">Sector Type</label>
+                <select class="form-control" id="childSectorTypeId" name="childSectorTypeId"
+                  [(ngModel)]="childSectorModel.sectorTypeId"
+                  (change)="filterParentOptions(childSectorModel.sectorTypeId)">
+                  <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="childParentId">Select Parent</label>
+                <select class="form-control" id="childParentId" name="childParentId"
+                  [(ngModel)]="childSectorModel.parentId" #childParentId="ngModel" required>
+                  <option *ngFor="let sector of parentSectors" [value]="sector.id">{{sector.sectorName}}</option>
+                </select>
+                <div *ngIf="childSectorForm.submitted && !childParentId.valid" class="alert alert-danger">
+                  Parent is required
+                </div>
+                <div *ngIf="parentSectors.length === 0" class="text-info mt-2">
+                  <i>No parent sectors available for the selected type.</i>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="childSectorName">Name</label>
+                <input type="text" class="form-control" id="childSectorName" name="childSectorName"
+                  [(ngModel)]="childSectorModel.sectorName" #childSectorName="ngModel" required>
+                <div *ngIf="childSectorForm.submitted && !childSectorName.valid" class="alert alert-danger">
+                  Name is required
+                </div>
+              </div>
+
+              <button [disabled]="isBtnDisabled || parentSectors.length === 0" class="btn btn-lg btn-info btn-block text-uppercase"
+                type="submit">Save Child Sector</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'edit'" class="col-md-12">
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+            <div class="card card-signin my-5">
+              <div class="card-body">
+                <h5 class="card-title text-center">Edit Sector</h5>
+                <form class="form-signin" (ngSubmit)="sectorForm.form.valid && saveSector()" #sectorForm="ngForm">
+
+                  <div class="form-group">
+                    <label for="sectorTypeId">Sector Type</label>
+                    <select class="form-control" id="sectorTypeId" [(ngModel)]="model.sectorTypeId" name="sectorTypeId"
+                      #sectorTypeId="ngModel" (change)="filterParentSectors()">
+                      <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="parentId">Parent Sector</label>
+                    <select class="form-control" id="parentId" [(ngModel)]="model.parentId" name="parentId"
+                      #parentId="ngModel">
+                      <option *ngFor="let sector of sectors" [value]="sector.id">{{sector.sectorName}}</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sectorName">Name</label>
+                    <input type="text" class="form-control" id="sectorName" [(ngModel)]="model.sectorName" name="sectorName"
+                      #sectorName="ngModel" required>
+                    <div *ngIf="sectorForm.submitted && !sectorName.valid" class="alert alert-danger">
+                      Sector Name is required
+                    </div>
+                  </div>
+
+                  <button [disabled]="isBtnDisabled" class="btn btn-lg btn-info btn-block text-uppercase"
+                    type="submit">{{btnText}}</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-12 col-md-6">
+            <div class="card card-signin my-5">
+              <div class="card-body">
+                <h5 class="card-title text-center">Child Sectors</h5>
+                <table *ngIf="sectorChildren.length > 0" class="table table-bordered">
+                  <tr>
+                    <th>Sector</th>
+                    <th>Action</th>
+                  </tr>
+                  <tr *ngFor="let sector of sectorChildren">
+                    <td>{{sector.sectorName}}</td>
+                    <td>
+                      <a title="Remove from Child" (click)="removeChildSector(sector.id)" class="btn btn-danger"><i
+                          class="fa fa-trash color-white"></i></a>
+                    </td>
+                  </tr>
+                </table>
+                <div class="text-info" *ngIf="sectorChildren.length == 0">
+                  <i>No children sectors available</i>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
-
   </block-ui>
 </div>
 
-<error-modal message={{errorMessage}}></error-modal>
+<error-modal [message]="errorMessage"></error-modal>

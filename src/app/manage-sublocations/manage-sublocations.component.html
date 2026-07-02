@@ -46,6 +46,31 @@
                     Sub-location Name is required
                   </div>
                 </div>
+
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="latitude">Latitude</label>
+                    <input type="number" class="form-control" id="latitude" [(ngModel)]="model.latitude" name="latitude"
+                      #latitude="ngModel" step="any" min="-90" max="90">
+                    <div *ngIf="locationForm.submitted && latitude.errors?.min" class="alert alert-danger">
+                      Latitude must be at least -90
+                    </div>
+                    <div *ngIf="locationForm.submitted && latitude.errors?.max" class="alert alert-danger">
+                      Latitude must be at most 90
+                    </div>
+                  </div>
+                  <div class="form-group col-md-6">
+                    <label for="longitude">Longitude</label>
+                    <input type="number" class="form-control" id="longitude" [(ngModel)]="model.longitude" name="longitude"
+                      #longitude="ngModel" step="any" min="-180" max="180">
+                    <div *ngIf="locationForm.submitted && longitude.errors?.min" class="alert alert-danger">
+                      Longitude must be at least -180
+                    </div>
+                    <div *ngIf="locationForm.submitted && longitude.errors?.max" class="alert alert-danger">
+                      Longitude must be at most 180
+                    </div>
+                  </div>
+                </div>
   
                 <button [class.disable]="isBtnDisabled" class="btn btn-lg btn-info btn-block text-uppercase"
                   type="submit">{{btnText}}</button>

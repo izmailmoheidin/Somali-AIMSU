@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpRequest, HttpEvent } from '@angular/common/http';
+import { HttpClient, HttpRequest, HttpEvent, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UrlHelperService } from './url-helper-service';
 import { httpOptions } from '../config/httpoptions';
@@ -18,10 +18,13 @@ export class SponsorLogoService {
   uploadAndSaveLogo(file: File, title: string): Observable<HttpEvent<any>> {
     const formData: FormData = new FormData();
 
-    formData.append('logo', file);
+    formData.append('Logo', file);
     formData.append('title', title);
     var url = this.urlHelper.getSponsorLogoUrl();
     const req = new HttpRequest('POST', url, formData, {
+      headers: new HttpHeaders({
+        'Authorization': 'Bearer ' + localStorage.getItem("token")
+      }),
       reportProgress: true,
       responseType: 'json'
     });

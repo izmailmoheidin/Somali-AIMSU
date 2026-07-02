@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { StoreService } from '../services/store-service';
 import {Settings} from '../config/settings';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,6 +13,7 @@ import { faBuilding, faMoneyCheck, faTasks, faUser } from '@fortawesome/free-sol
 import { DocumentLinkService } from '../services/document-link.service';
 import { SponsorLogoService } from '../services/sponsor-logo.service';
 import { UrlHelperService } from '../services/url-helper-service';
+import { SecurityHelperService } from '../services/security-helper.service';
 
 @Component({
   selector: 'app-home',
@@ -44,6 +46,7 @@ export class HomeComponent implements OnInit {
   requestNo: number = 0;
   videoOneUrl!: SafeResourceUrl;
   videoTwoUrl!: SafeResourceUrl;
+  permissions: any = {};
   
   constructor(private storeService: StoreService, private route: ActivatedRoute,
     private userService: UserService, private organizationService: OrganizationService,
@@ -52,7 +55,9 @@ export class HomeComponent implements OnInit {
     private documentService: DocumentLinkService,
     private sponsorService: SponsorLogoService,
     private urlService: UrlHelperService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private securityService: SecurityHelperService,
+    private httpClient: HttpClient
     ) {
       this.videoOneUrl = this.sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/DYG0VayhKcs?si=2TW1SsKu1LSCd6Ym');
       this.videoTwoUrl = this.sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/H_n8DjUbCmk?si=VNmsK9nCbVNf4A-t');
@@ -60,6 +65,7 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     this.storeService.newReportItem(Settings.dropDownMenus.home);
+    this.permissions = this.securityService.getUserPermissions();
     this.storeService.currentInfoMessage.subscribe(message => this.infoMessage = message);
     if (this.infoMessage !== null && this.infoMessage !== '') {
       this.showMessage = true;
@@ -189,6 +195,25 @@ export class HomeComponent implements OnInit {
 
   formatNumberWithCommas(value: number) {
     return this.storeService.getNumberWithCommas(value);
+  
   }
-
+  openHangfireDashboard(): void {
+    this.httpClient.post(
+      this.urlService.getHangfireAuthenticateUrl(),
+      {},
+      {
+        headers: new HttpHeaders({
+          'Authorization': 'Bearer ' + localStorage.getItem("token")
+        }),
+        withCredentials: true
+      }
+    ).subscribe({
+      next: () => {
+        window.open(this.urlService.getHangfireDashboardUrl(), '_blank');
+      },
+      error: () => {
+        alert('Unable to open Hangfire Dashboard.');
+      }
+    });
+  }
 }
