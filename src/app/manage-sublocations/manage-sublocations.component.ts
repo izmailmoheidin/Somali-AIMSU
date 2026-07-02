@@ -23,7 +23,7 @@ export class ManageSubLocationsComponent implements OnInit {
   locations: any = [];
   btnText: string = 'Add Sub-location';
   locationTabText: string = 'Manage sub-location';
-  model: any = { id: 0, subLocation: null, locationId: 0 };
+  model: any = { id: 0, subLocation: null, locationId: 0, latitude: 0.00, longitude: 0.00 };
   
   constructor(private locationService: LocationService,
     private securityService: SecurityHelperService,
@@ -68,6 +68,8 @@ export class ManageSubLocationsComponent implements OnInit {
         if (data) {
           this.model.locationId = data.locationId;
           this.model.subLocation = data.subLocation;
+          this.model.latitude = data.latitude;
+          this.model.longitude = data.longitude;
         }
       }
     );
@@ -82,6 +84,8 @@ export class ManageSubLocationsComponent implements OnInit {
     var model = {
       locationId: locationId,
       subLocation: this.model.subLocation,
+      latitude: this.model.latitude,
+      longitude: this.model.longitude
     };
 
     this.isBtnDisabled = true;

@@ -999,4 +999,13 @@ export class UrlHelperService {
     getFundingByProjectIdUrl(id: number) {
         return (this.BASE_URL + urlsList.urls.getFundingByProjectIdUrl + id);
     }
+
+    getHangfireAuthenticateUrl() {
+        return (this.BASE_URL + urlsList.urls.hangfireAuthenticate);
+    }
+
+    getHangfireDashboardUrl() {
+        var baseWithoutApi = this.BASE_URL.substring(0, this.BASE_URL.length - 4);
+        return baseWithoutApi + 'hangfire';
+    }
 }

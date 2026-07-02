@@ -203,10 +203,14 @@
             <div class="card-body bg-white padding-5">
               <div class="row">
                 <div class="col-md-12">
-                  <iframe width="560" height="315" [src]="videoOneUrl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                  <iframe width="560" height="315" [src]="videoOneUrl" title="YouTube video player" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
                 <div class="col-md-12 margin-top-10">
-                  <iframe width="560" height="315" [src]="videoTwoUrl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                  <iframe width="560" height="315" [src]="videoTwoUrl" title="YouTube video player" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
               </div>
             </div>
@@ -245,6 +249,19 @@
             </div>
           </div>
 
+        </div>
+
+        <div *ngIf="permissions.canManage" class="col-md-12 col-lg-12 col-sm-12 margin-top-10">
+          <div class="card bg-light">
+            <div class="card-header">
+              <span class="float-left">
+                <h6>Administration</h6>
+              </span>
+            </div>
+            <button class="btn btn-info" (click)="openHangfireDashboard()">
+              Hangfire Dashboard
+            </button>
+          </div>
         </div>
 
       </div>

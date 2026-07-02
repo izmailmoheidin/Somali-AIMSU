@@ -37,7 +37,8 @@ export class NewProjectComponent implements OnInit {
   isIATILoaded: boolean = false;
   isAIMSLoading: boolean = false;
   isBtnDisabled: boolean = false;
-  isTextReadOnly: boolean = true;
+  isTextReadOnlyAIMS: boolean = false;
+  isTextReadOnlyIATI: boolean = true;
   selectedProjectTitle: string = null;
   selectedProjectStartDate: string = null;
   selectedProjectEndDate: string = null;
@@ -297,25 +298,10 @@ export class NewProjectComponent implements OnInit {
           }.bind(this));
         }
         this.isProjectLoaded = true;
-        this.isTextReadOnly = false;
+        this.isTextReadOnlyIATI = false;
         this.inputTextHolder = projectTitle;
         this.isIATILoading = false;
         this.isIATILoaded = true;
-
-        if (!this.isAIMSLoading) {
-          if (this.organizationsList && this.organizationsList.length > 0) {
-            var org = this.organizationsList.filter(o => o.id == this.userOrganizationId);
-            if (org.length > 0) {
-              this.model.selectedOrganizations.push(org[0]);
-              if (org.length > 0) {
-                setTimeout(() => {
-                  this.filterProjectMatches();
-                }, 1000);
-
-              }
-            }
-          }
-        }
       }
     );
   }

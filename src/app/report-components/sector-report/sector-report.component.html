@@ -46,9 +46,9 @@
               </div>
               <div class="row margin-top-10">
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control" id="sectorLevel" [(ngModel)]="model.sectorLevel" name="sectorLevel"
+                    <select class="form-control" id="sectorLevel" [(ngModel)]="model.sectorLevel" name="sectorLevel"
                     title="Sector level" #sectorLevel="ngModel" required (change)="manageSectorLevel();onChangeParentSector();">
-                    <option value="0">--Sector levels--</option>
+                    <option value="-1">--Sector levels--</option>
                     <option *ngFor="let level of sectorLevels" [value]="level.id">{{level.level}}
                     </option>
                   </select>
@@ -291,7 +291,7 @@
                   </td>
                 </tr>
 
-                <tr class="child" [hidden]="!sectorProject.isDisplay" *ngIf="sectorProject.projects.length == 0">
+                <tr class="child" [hidden]="!sectorProject.isDisplay" *ngIf="sectorProject.projects.length == 0 && (!sectorProject.childSectors || sectorProject.childSectors.length == 0)">
                   <td width="100%" colspan="6">
                     <span class="text-info"><i>No projects found</i></span>
                   </td>
