@@ -69,6 +69,23 @@
   pointer-events: none;
 }
 
+.year-filter {
+  min-width: 280px;
+}
+
+.year-filter .multiselect-dropdown,
+.year-filter .ng-multiselect-dropdown,
+.year-filter .dropdown-btn,
+.year-filter .dropdown-list,
+.year-filter .selected-list {
+  min-width: 280px !important;
+  width: 100% !important;
+}
+
+.year-filter .dropdown-list {
+  max-width: 320px !important;
+}
+
 /* Card styling */
 .card {
   margin-bottom: 20px;
