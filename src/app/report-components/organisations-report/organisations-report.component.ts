@@ -51,6 +51,7 @@ export class OrganisationsReportComponent implements OnInit, AfterViewInit, OnDe
   locationsSettings: any = {};
   subLocationsSettings: any = {};
   projectsSettings: any = {};
+  yearsSettings: any = {};
   markerValuesSettings: any = {};
   dataOptionSettings: any = {};
 
@@ -81,6 +82,7 @@ export class OrganisationsReportComponent implements OnInit, AfterViewInit, OnDe
     selectedLocations: [],
     selectedSubLocations: [],
     selectedProjects: [],
+    selectedYears: [],
     sectorsList: [],
     locationsList: [],
     subLocationsList: [],
@@ -491,6 +493,16 @@ onOrganizationDeSelectAll(event: any) {
       allowSearchFilter: true
     };
 
+    this.yearsSettings = {
+      singleSelection: false,
+      idField: 'financialYear',
+      textField: 'label',
+      selectAllText: 'Select all',
+      unSelectAllText: 'Unselect all',
+      itemsShowLimit: 5,
+      allowSearchFilter: true
+    };
+
     this.markerValuesSettings = {
       singleSelection: false,
       idField: 'id',
@@ -630,10 +642,21 @@ renderCharts() {
 
     var chartType = this.loadReport ? this.paramChartType : this.model.chartType;
 
+    const selectedYearIds = (this.model.selectedYears || []).map((y: any) => {
+      if (typeof y === 'number') {
+        return y;
+      }
+      return y && y.financialYear ? parseInt(y.financialYear.toString()) : 0;
+    }).filter((y: any) => y && y !== 0);
+
+    const minYear = selectedYearIds.length > 0 ? Math.min(...selectedYearIds) : 0;
+    const maxYear = selectedYearIds.length > 0 ? Math.max(...selectedYearIds) : 0;
+
     var searchModel = {
       projectIds: this.loadReport ? this.paramProjectIds : projectIds,
-      startingYear: this.model.startingYear ? parseInt(this.model.startingYear.toString()) : 0,
-      endingYear: this.model.endingYear ? parseInt(this.model.endingYear.toString()) : 0,
+      startingYear: selectedYearIds.length > 0 ? minYear : 0,
+      endingYear: selectedYearIds.length > 0 ? maxYear : 0,
+      years: selectedYearIds,
       organizationIds: this.loadReport ? this.paramOrgIds : this.model.selectedOrganizations.map((o: any) => o.id),
       sectorIds: this.loadReport ? this.paramSectorIds : this.model.selectedSectors.map((s: any) => s.id),
       locationId: this.model.locationId ? parseInt(this.model.locationId.toString()) : 0,
@@ -1466,6 +1489,21 @@ loadProjectLocations(): void {
     this.fyService.getYearsList().subscribe(
       data => {
         this.yearsList = data;
+        if (this.model && this.model.selectedYears && this.model.selectedYears.length > 0) {
+          return;
+        }
+        if ((this.model.startingYear || 0) !== 0 || (this.model.endingYear || 0) !== 0) {
+          this.model.selectedYears = (this.yearsList || []).filter((y: any) => {
+            const year = y.financialYear ? parseInt(y.financialYear.toString()) : 0;
+            if (this.model.startingYear && this.model.endingYear) {
+              return year >= this.model.startingYear && year <= this.model.endingYear;
+            }
+            if (this.model.startingYear) {
+              return year === this.model.startingYear;
+            }
+            return year === this.model.endingYear;
+          });
+        }
       }
     );
   }
@@ -1625,6 +1663,14 @@ loadProjectLocations(): void {
     }
   }
 
+  onChangeYears() {
+    if (this.model.selectedYears && this.model.selectedYears.length > 0) {
+      this.setFilter();
+    } else {
+      this.manageResetDisplay();
+    }
+  }
+
   changeLocation() {
     if (this.model.locationId != 0) {
       this.setFilter();
@@ -1682,8 +1728,7 @@ loadProjectLocations(): void {
   manageResetDisplay() {
     if (
       (this.model?.selectedProjects?.length || 0) == 0 &&
-      (this.model?.startingYear || 0) == 0 &&
-      (this.model?.endingYear || 0) == 0 &&
+      (this.model?.selectedYears?.length || 0) == 0 &&
       (this.model?.selectedSectors?.length || 0) == 0 &&
       (this.model?.selectedOrganizations?.length || 0) == 0 &&
       (this.model?.selectedLocations?.length || 0) == 0 &&
@@ -1698,6 +1743,7 @@ loadProjectLocations(): void {
 
   resetFilters() {
     this.model.selectedProjects = [];
+    this.model.selectedYears = [];
     this.model.startingYear = 0;
     this.model.endingYear = 0;
     this.model.selectedSectors = [];

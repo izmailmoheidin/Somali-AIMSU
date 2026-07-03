@@ -31,20 +31,18 @@
                   <table>
                     <tr>
                       <td>Period:&nbsp;</td>
-                      <td>
-                        <select class="form-control" id="startingYear" title="Starting financial year"
-                          [(ngModel)]="model.startingYear" name="startingYear" (change)="onChangeStartingYear()" #startingYear="ngModel" required>
-                          <option value="0">--Active In--</option>
-                          <option *ngFor="let year of yearsList" [value]="year.financialYear">{{year.label}}</option>
-                        </select>
-                      </td>
-                      <td>&nbsp;&nbsp;</td>
-                      <td>
-                        <select class="form-control" id="endingYear" title="Ending financial year"
-                          [(ngModel)]="model.endingYear" name="endingYear" (change)="onChangeEndingYear()" #endingYear="ngModel">
-                          <option value="0">--Active Until--</option>
-                          <option *ngFor="let year of yearsList" [value]="year.financialYear">{{year.label}}</option>
-                        </select>
+                      <td class="year-filter">
+                        <ng-multiselect-dropdown [placeholder]="'-- Year --'" title="Year"
+                          [settings]="yearsSettings"
+                          [data]="yearsList"
+                          [(ngModel)]="model.selectedYears"
+                          (onSelect)="onChangeYears()"
+                          (onSelectAll)="onChangeYears()"
+                          (onDeSelect)="onChangeYears()"
+                          (onDeSelectAll)="onChangeYears()"
+                          name="selectedYears"
+                          #selectedYears="ngModel">
+                        </ng-multiselect-dropdown>
                       </td>
                     </tr>
                   </table>
