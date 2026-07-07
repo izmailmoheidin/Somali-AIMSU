@@ -76,12 +76,10 @@
           <table *ngIf="currentProjectMarkers.length > 0" class="table table-bordered margin-top-10">
             <tr>
               <th>Marker</th>
-              <th>Values</th>
               <th>Actions</th>
             </tr>
             <tr *ngFor="let field of currentProjectMarkers">
               <td>{{field.fieldTitle}}</td>
-              <td>{{displayFieldValues(field.values)}}</td>
               <td>
                 <button id="ffield-{{projectId}}-{{field.markerId}}" (click)="deleteProjectMarker($event)"
                   class="btn btn-danger btn-sm">

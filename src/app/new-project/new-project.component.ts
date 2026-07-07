@@ -168,6 +168,8 @@ export class NewProjectComponent implements OnInit {
     this.loadUserProjects();
     this.loadAIMSProjects();
 
+    this.setDefaultDateFilters();
+
     this.markerValuesSettings = {
       singleSelection: false,
       idField: 'id',
@@ -426,6 +428,15 @@ export class NewProjectComponent implements OnInit {
     this.model.selectedMarkerValues = [];
     this.getSelectedMarkerValues();
     this.filterProjectMatches();
+  }
+
+  setDefaultDateFilters(): void {
+    var today = new Date();
+    var prevYear = today.getFullYear() - 1;
+    var month = ('0' + (today.getMonth() + 1)).slice(-2);
+    var day = ('0' + today.getDate()).slice(-2);
+    this.model.startDate = prevYear + '-01-01';
+    this.model.endDate = today.getFullYear() + '-' + month + '-' + day;
   }
 
   filterProjectMatches() {
@@ -752,12 +763,12 @@ export class NewProjectComponent implements OnInit {
               var org = this.organizationsList.filter(o => o.id == this.userOrganizationId);
               if (org.length > 0) {
                 this.model.selectedOrganizations.push(org[0]);
-                setTimeout(() => {
-                  this.filterProjectMatches();
-                }, 1000);
               }
             }
           }
+          setTimeout(() => {
+            this.filterProjectMatches();
+          }, 1000);
         }
       }
     );
