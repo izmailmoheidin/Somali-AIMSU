@@ -9,6 +9,8 @@ import { Settings } from 'src/app/config/settings';
 import { ModalService } from 'src/app/services/modal.service';
 import { ChartType, ChartDataset, ChartOptions } from 'chart.js';
 import { UrlHelperService } from 'src/app/services/url-helper-service';
+import { SectorTypeService } from 'src/app/services/sector-types.service';
+import { LocationService } from 'src/app/services/location.service';
 
 @Component({
   selector: 'budget-report',
@@ -40,6 +42,12 @@ export class BudgetReportComponent implements OnInit {
   btnReportText: string = 'View report';
   arrangementConstant: number = 1;
   currentArrangement: string = null;
+  sectorTypesList: any = [];
+  selectedSectorTypeId: number = 0;
+  selectedLocationId: number = 0;
+  resetCounter: number = 0;
+  allLocationsList: any = [];
+  allLocationsMap: any = {};
 
   chartDescriptiveLabels: any = [];
   isChartLoading: boolean = true;
@@ -97,7 +105,9 @@ export class BudgetReportComponent implements OnInit {
   constructor(private reportService: ReportService, private errorModal: ErrorModalComponent,
     private storeService: StoreService, private currencyService: CurrencyService,
     private modalService: ModalService,
-    private urlService: UrlHelperService) { }
+    private urlService: UrlHelperService,
+    private sectorTypeService: SectorTypeService,
+    private locationService: LocationService) { }
 
   ngOnInit() {
     this.storeService.newReportItem(Settings.dropDownMenus.reports);
@@ -106,6 +116,8 @@ export class BudgetReportComponent implements OnInit {
     this.getDefaultCurrency();
     this.getNationalCurrency();
     this.getManualExchangeRateForToday();
+    this.getSectorTypesList();
+    this.getLocationsList();
     this.getBudgetReport();
   }
 
@@ -157,13 +169,101 @@ export class BudgetReportComponent implements OnInit {
     );
   }
 
+  getSectorTypesList() {
+    this.sectorTypeService.getSectorTypesList().subscribe(
+      data => {
+        if (data) {
+          this.sectorTypesList = data;
+          var defaultType = data.filter((t: any) => t.isPrimary == true);
+          if (defaultType.length > 0) {
+            this.selectedSectorTypeId = defaultType[0].id;
+          }
+        }
+      }
+    );
+  }
+
+  onSectorTypeChange() {
+    this.getBudgetReport();
+  }
+
+  onCascadingLocationSelected(locationId: number) {
+    this.selectedLocationId = locationId || 0;
+    this.getBudgetReport();
+  }
+
+  resetLocationFilter() {
+    this.resetCounter++;
+    this.selectedLocationId = 0;
+    this.getBudgetReport();
+  }
+
+  getLocationsList() {
+    this.locationService.getLocationsList().subscribe(
+      data => {
+        if (data) {
+          this.allLocationsList = data;
+          this.allLocationsMap = {};
+          (data || []).forEach(loc => {
+            this.allLocationsMap[loc.id] = loc;
+          });
+        }
+      }
+    );
+  }
+
+  getRootStateId(locationId: number): number {
+    var current = this.allLocationsMap[locationId];
+    if (!current) return locationId;
+    var visited = new Set<number>();
+    while (current && current.parentLocationId && !visited.has(current.id)) {
+      visited.add(current.id);
+      current = this.allLocationsMap[current.parentLocationId];
+    }
+    return current ? current.id : locationId;
+  }
+
+  rollUpLocationDisbursementsToStates(locationDisbursements: any[]): any[] {
+    if (!locationDisbursements || locationDisbursements.length == 0) return locationDisbursements;
+    var grouped: any = {};
+    var order: number[] = [];
+
+    locationDisbursements.forEach(ld => {
+      var stateId = this.getRootStateId(ld.locationId);
+      if (!grouped[stateId]) {
+        var stateLoc = this.allLocationsMap[stateId];
+        grouped[stateId] = {
+          locationId: stateId,
+          locationName: stateLoc ? stateLoc.location : 'Unknown',
+          disbursements: []
+        };
+        order.push(stateId);
+      }
+      var g = grouped[stateId];
+      if (g.disbursements.length == 0) {
+        g.disbursements = ld.disbursements.map(d => ({ year: d.year, totalValue: d.totalValue }));
+      } else {
+        ld.disbursements.forEach((d, i) => {
+          if (i < g.disbursements.length) {
+            g.disbursements[i].totalValue += d.totalValue;
+          }
+        });
+      }
+    });
+
+    return order.map(id => grouped[id]);
+  }
+
   getBudgetReport() {
     this.blockUI.start('Loading report...');
     this.isChartLoading = true;
-    this.reportService.getBudgetReport().subscribe(
+    this.reportService.getBudgetReport(this.selectedSectorTypeId, this.selectedLocationId).subscribe(
       data => {
         if (data) {
           this.reportDataList = data;
+          if (this.reportDataList.locationDisbursements) {
+            this.reportDataList.locationDisbursements = this.rollUpLocationDisbursementsToStates(this.reportDataList.locationDisbursements);
+          }
           if (this.reportDataList.years) {
             this.chartLabels = this.reportDataList.years.map(y => y.year);
           }
@@ -186,10 +286,12 @@ export class BudgetReportComponent implements OnInit {
   manageDataDisplayArrangements() {
     if (this.arrangementConstant == this.arrangementConstants.SECTORS) {
       this.currentArrangement = this.arrangementConstantLabels.SECTORS;
+      this.resetCounter++;
+      this.selectedLocationId = 0;
     } else if (this.arrangementConstant == this.arrangementConstants.LOCATIONS) {
       this.currentArrangement = this.arrangementConstantLabels.LOCATIONS;
     }
-    this.setupChartData();
+    this.getBudgetReport();
   }
 
   displayHideRow(id) {
@@ -198,6 +300,23 @@ export class BudgetReportComponent implements OnInit {
       if (selectProject.length > 0) {
         selectProject[0].isDisplay = !selectProject[0].isDisplay;
       }
+    }
+  }
+
+  toggleSectorRow(sectorId: number) {
+    if (this.reportDataList.parentSectorDisbursements) {
+      this.reportDataList.parentSectorDisbursements.forEach((sector: any) => {
+        if (sector.sectorId === sectorId) {
+          sector.isExpanded = !sector.isExpanded;
+        }
+        if (sector.childSectorDisbursements) {
+          sector.childSectorDisbursements.forEach((chapter: any) => {
+            if (chapter.sectorId === sectorId) {
+              chapter.isExpanded = !chapter.isExpanded;
+            }
+          });
+        }
+      });
     }
   }
 
@@ -215,7 +334,7 @@ export class BudgetReportComponent implements OnInit {
         });
       });
     } else if (this.arrangementConstant == this.arrangementConstants.LOCATIONS) {
-      this.chartDescriptiveLabels = this.reportDataList.locationDisbursements.map(s => s.sectorName);
+      this.chartDescriptiveLabels = this.reportDataList.locationDisbursements.map(s => s.locationName);
       this.reportDataList.locationDisbursements.forEach((l) => {
         this.chartData.push({
           data: l.disbursements.map(d => d.totalValue),
@@ -300,6 +419,24 @@ export class BudgetReportComponent implements OnInit {
           if (p.disbursements) {
             p.disbursements.forEach((d) => {
               d.totalValue = Math.round(parseFloat((d.totalValue * calculatedRate).toFixed(2)));
+            });
+          }
+          if (p.childSectorDisbursements) {
+            p.childSectorDisbursements.forEach((chapter) => {
+              if (chapter.disbursements) {
+                chapter.disbursements.forEach((d) => {
+                  d.totalValue = Math.round(parseFloat((d.totalValue * calculatedRate).toFixed(2)));
+                });
+              }
+              if (chapter.childSectorDisbursements) {
+                chapter.childSectorDisbursements.forEach((kra) => {
+                  if (kra.disbursements) {
+                    kra.disbursements.forEach((d) => {
+                      d.totalValue = Math.round(parseFloat((d.totalValue * calculatedRate).toFixed(2)));
+                    });
+                  }
+                });
+              }
             });
           }
         });

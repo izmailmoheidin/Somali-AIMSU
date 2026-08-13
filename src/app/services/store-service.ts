@@ -79,9 +79,16 @@ export class StoreService {
             if(error.error && error.error.errors) {
               var errorObject = error.error.errors;
               var key = (Object.keys(error.error.errors)[0]);
-              errorMessage = errorObject[key];
-            } else {
+              var rawMessage = errorObject[key];
+              if (Array.isArray(rawMessage)) {
+                errorMessage = rawMessage.join('. ');
+              } else {
+                errorMessage = rawMessage;
+              }
+            } else if (error.error) {
               errorMessage = error.error;
+            } else {
+              errorMessage = 'Bad request: The server rejected the request. Please check your input and try again.';
             }
           } else if (error.statusText == 'Unknown Error') {
             errorMessage = 'Unkown Error: Something went wrong. Make sure your Internet connection ' + 
@@ -97,7 +104,11 @@ export class StoreService {
           }
         }
       }
-      
+
+      if (!errorMessage) {
+        errorMessage = 'An unexpected error occurred (HTTP ' + (error.status || 'unknown') + '). Please try again or contact AIMS Administrator.';
+      }
+
       model.errorMessage = errorMessage;
       model.errorStatus = error.status;
       this.newRequestTrack(model);
@@ -290,18 +301,36 @@ export class StoreService {
 
   convertDateToYMDBySlash(date: string) {
     if (date) {
-      //return new Date(date).toISOString().split('T')[0];
-      var timestamp = Date.parse(date);
-      if (isNaN(timestamp) == false) {
-        var dateParts = date.split('/');
-        if (parseInt(dateParts[0]) < 10) {
-          dateParts[0] =  '0' + dateParts[0];
+      var dateParts = date.split('/');
+      if (dateParts.length == 3) {
+        var year, month, day;
+        if (parseInt(dateParts[0]) >= 1000) {
+          year = dateParts[0];
+          month = dateParts[1];
+          day = dateParts[2];
+        } else if (parseInt(dateParts[0]) > 12) {
+          // dd/MM/yyyy — API returns this format
+          day = dateParts[0];
+          month = dateParts[1];
+          year = dateParts[2];
+        } else if (parseInt(dateParts[1]) > 12) {
+          // MM/dd/yyyy
+          month = dateParts[0];
+          day = dateParts[1];
+          year = dateParts[2];
+        } else {
+          // Ambiguous (both <= 12) — default to dd/MM/yyyy (API format)
+          day = dateParts[0];
+          month = dateParts[1];
+          year = dateParts[2];
         }
-
-        if (parseInt(dateParts[1]) < 10) {
-          dateParts[1] =  '0' + dateParts[1];
+        if (parseInt(month) < 10) {
+          month = '0' + parseInt(month);
         }
-        return (dateParts[2] + '-' + dateParts[0] + '-' + dateParts[1]);
+        if (parseInt(day) < 10) {
+          day = '0' + parseInt(day);
+        }
+        return (year + '-' + month + '-' + day);
       }
     }
     return date;
@@ -309,19 +338,36 @@ export class StoreService {
 
   convertToDateInputFormat(date: string) {
     if (date) {
-      //return new Date(date).toISOString().split('T')[0];
-      var timestamp = Date.parse(date);
-      if (isNaN(timestamp) == false) {
-        var dateParts = date.split('/');
-
-        if (parseInt(dateParts[0]) < 10) {
-          dateParts[0] =  '0' + dateParts[0];
+      var dateParts = date.split('/');
+      if (dateParts.length == 3) {
+        var year, month, day;
+        if (parseInt(dateParts[0]) >= 1000) {
+          year = dateParts[0];
+          month = dateParts[1];
+          day = dateParts[2];
+        } else if (parseInt(dateParts[0]) > 12) {
+          // dd/MM/yyyy — API returns this format
+          day = dateParts[0];
+          month = dateParts[1];
+          year = dateParts[2];
+        } else if (parseInt(dateParts[1]) > 12) {
+          // MM/dd/yyyy
+          month = dateParts[0];
+          day = dateParts[1];
+          year = dateParts[2];
+        } else {
+          // Ambiguous (both <= 12) — default to dd/MM/yyyy (API format)
+          day = dateParts[0];
+          month = dateParts[1];
+          year = dateParts[2];
         }
-
-        if (parseInt(dateParts[1]) < 10) {
-          dateParts[1] =  '0' + dateParts[1];
+        if (parseInt(month) < 10) {
+          month = '0' + parseInt(month);
         }
-        return (dateParts[2] + '-' + dateParts[0] + '-' + dateParts[1]);
+        if (parseInt(day) < 10) {
+          day = '0' + parseInt(day);
+        }
+        return (year + '-' + month + '-' + day);
       }
     }
     return date;

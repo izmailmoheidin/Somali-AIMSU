@@ -1,0 +1,111 @@
+<div class="ai-chat-wrapper">
+  <!-- Header -->
+  <div class="ai-chat-header">
+    <div class="ai-chat-header-inner">
+      <div class="ai-chat-brand">
+        <span class="ai-chat-logo">AIMS</span>
+        <span class="ai-chat-tagline">Ask anything about Somalia's aid data</span>
+      </div>
+      <div class="ai-chat-header-actions">
+        <select class="ai-model-select" [(ngModel)]="selectedModel" (change)="onModelChange()">
+          <option *ngFor="let opt of modelOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+        <button class="ai-clear-btn" (click)="clearChat()" *ngIf="conversations.length > 0" title="New conversation">
+          New chat
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrollable conversation area -->
+  <div class="ai-chat-scroll" #scrollContainer>
+    <div class="ai-chat-column">
+
+      <!-- Empty state with suggestions -->
+      <div class="ai-empty-state" *ngIf="conversations.length === 0">
+        <div class="ai-empty-icon">AI</div>
+        <h2>How can I help you today?</h2>
+        <p class="ai-empty-subtitle">Ask about funding, projects, sectors, organizations, and more</p>
+        <div class="ai-suggestion-chips">
+          <button *ngFor="let q of suggestedQuestions"
+                  class="ai-suggestion-chip"
+                  (click)="useSuggestedQuestion(q)">{{ q }}</button>
+        </div>
+      </div>
+
+      <!-- Conversation exchanges -->
+      <div class="ai-conversation-exchange" *ngFor="let conv of conversations">
+        <!-- User message -->
+        <div class="ai-user-row">
+          <div class="ai-user-avatar">You</div>
+          <div class="ai-user-message">{{ conv.question }}</div>
+        </div>
+
+        <!-- AI response -->
+        <div class="ai-assistant-row">
+          <div class="ai-assistant-avatar">AI</div>
+          <div class="ai-assistant-content">
+            <!-- Thinking indicator -->
+            <div class="ai-thinking" *ngIf="conv.isLoading">
+              <span class="ai-thinking-dot"></span>
+              <span class="ai-thinking-dot"></span>
+              <span class="ai-thinking-dot"></span>
+            </div>
+
+            <!-- Answer -->
+            <div class="ai-answer-text" *ngIf="!conv.isLoading && conv.answer" markdown [data]="conv.answer"></div>
+
+            <!-- Chart -->
+            <div class="ai-answer-chart" *ngIf="!conv.isLoading && conv.chartLabels.length > 0 && conv.chartData.length > 0">
+              <div class="ai-chart-container">
+                <canvas baseChart
+                        [datasets]="conv.chartData"
+                        [labels]="conv.chartLabels"
+                        [options]="chartOptions"
+                        [legend]="chartLegend"
+                        [chartType]="conv.chartType"></canvas>
+              </div>
+            </div>
+
+            <!-- Sources and model label -->
+            <div class="ai-answer-meta" *ngIf="!conv.isLoading && conv.answer">
+              <span class="ai-meta-model" *ngIf="conv.modelUsed">{{ conv.modelUsed }}</span>
+              <span class="ai-meta-sources" *ngIf="conv.sources && conv.sources.length > 0">
+                Sources: {{ conv.sources.join(', ') }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Fixed input area -->
+  <div class="ai-chat-input-area">
+    <div class="ai-chat-input-inner">
+      <div class="ai-input-box">
+        <textarea #textareaInput
+                  class="ai-input-textarea"
+                  placeholder="Ask a question..."
+                  [(ngModel)]="question"
+                  (keydown)="onKeydown($event)"
+                  (input)="onInput()"
+                  [disabled]="isSending"
+                  rows="1"></textarea>
+        <button class="ai-send-btn"
+                (click)="askQuestion()"
+                [disabled]="isSending || !question.trim()">
+          <svg *ngIf="!isSending" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <span *ngIf="isSending" class="ai-send-spinner"></span>
+        </button>
+      </div>
+      <div class="ai-input-hint">
+        <span>Press Enter to send, Shift+Enter for new line</span>
+      </div>
+    </div>
+  </div>
+</div>

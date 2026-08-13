@@ -14,6 +14,7 @@ import { Settings } from 'src/app/config/settings';
 import { SectorService } from 'src/app/services/sector.service';
 import { MarkerService } from 'src/app/services/marker.service';
 import { UrlHelperService } from 'src/app/services/url-helper-service';
+import { SectorTypeService } from 'src/app/services/sector-types.service';
 
 @Component({
   selector: 'location-report',
@@ -78,6 +79,8 @@ export class LocationReportComponent implements OnInit {
   isNoSectorReport: boolean = false;
   isManageDataDisplay: boolean = true;
   btnReportText: string = 'Update report';
+  sectorTypesList: any = [];
+  selectedSectorTypeId: number = 0;
 
   chartOptions: any = [
     { id: 1, type: 'bar', title: 'Bar chart' },
@@ -139,6 +142,21 @@ export class LocationReportComponent implements OnInit {
     PROJECTS_WITH_LOCATIONS: 1,
     PROJECTS_WITHOUT_LOCATIONS: 2
   }
+
+  locationLevelOptions: any = [
+    { id: 1, value: 'State' },
+    { id: 2, value: 'Region' },
+    { id: 3, value: 'District' }
+  ];
+
+  locationLevelCodes: any = {
+    STATE: 1,
+    REGION: 2,
+    DISTRICT: 3
+  };
+
+  allLocationsMap: any = {};
+  rolledUpLocationList: any = [];
 
   dataOptionLabels: any = {
     ACTUAL_DISBURSEMENTS: 'Actual disbursements',
@@ -271,6 +289,7 @@ export class LocationReportComponent implements OnInit {
   model: any = {
     title: '', organizationIds: [], startingYear: 0, endingYear: 0, chartType: this.chartTypeCodes.BAR,
     sectorIds: [], locationIds: [], selectedSectors: [], selectedOrganizations: [],
+    locationLevel: 1,
     selectedLocations: [], selectedSubLocations: [], sectorsList: [], locationsList: [], organizationsList: [],
     selectedCurrency: null, exRateSource: null, dataOption: 1, selectedDataOptions: [],
     selectedDataOption: 1, chartTypeName: 'bar', selectedProjects: [], sectorId: 0, 
@@ -286,7 +305,8 @@ export class LocationReportComponent implements OnInit {
     private errorModal: ErrorModalComponent, private route: ActivatedRoute, 
     private projectService: ProjectService, private sectorService: SectorService,
     private markerService: MarkerService,
-    private urlService: UrlHelperService
+    private urlService: UrlHelperService,
+    private sectorTypeService: SectorTypeService
   ) { }
 
   ngOnInit() {
@@ -338,6 +358,7 @@ export class LocationReportComponent implements OnInit {
     this.getLocationsList();
     this.getOrganizationsList();
     this.loadFinancialYears();
+    this.getSectorTypesList();
     this.getSectorsList();
     this.getMarkers();
 
@@ -434,6 +455,56 @@ export class LocationReportComponent implements OnInit {
           }
         }
       });
+  }
+
+  getSectorTypesList() {
+    this.sectorTypeService.getSectorTypesList().subscribe(
+      data => {
+        if (data) {
+          this.sectorTypesList = data;
+          var defaultType = data.filter((t: any) => t.isPrimary == true);
+          if (defaultType.length > 0) {
+            this.selectedSectorTypeId = defaultType[0].id;
+          }
+        }
+      }
+    );
+  }
+
+  onSectorTypeChange() {
+    this.model.sectorId = 0;
+    this.model.sectorLevel = 0;
+    this.sectorsList = [];
+    this.allSectorsList = [];
+    this.subSectorIds = [];
+    this.subSubSectorIds = [];
+    this.sectorLevels = [
+      { "id": 1, "level": "Parent sectors" },
+      { "id": 2, "level": "Sub sectors" },
+    ];
+    if (!this.selectedSectorTypeId) {
+      this.getSectorsList();
+    } else {
+      this.sectorService.getSectorsForType(this.selectedSectorTypeId.toString()).subscribe(
+        data => {
+          if (data) {
+            this.allSectorsList = data;
+            var sectorsList = data.filter((s: any) => s.parentSector == null);
+            this.sectorsList = sectorsList;
+            var sectorIds = sectorsList.map((s: any) => s.id);
+            var subSectorsList = data.filter((s: any) => sectorIds.indexOf(s.parentSectorId) != -1);
+            this.subSectorIds = subSectorsList.map((s: any) => s.id);
+            var subSubSectors = data.filter((s: any) => this.subSectorIds.indexOf(s.parentSectorId) != -1);
+            this.subSubSectorIds = subSubSectors.map((s: any) => s.id);
+
+            if (this.subSubSectorIds.length > 0) {
+              this.sectorLevels.push({ id: 3, level: 'Sub-sub sectors' });
+              this.sectorLevels.sort((s: any) => s.id);
+            }
+          }
+        }
+      );
+    }
   }
 
   getSectorsList() {
@@ -565,7 +636,8 @@ export class LocationReportComponent implements OnInit {
       markerId2: (this.model.markerId2) ? parseInt(this.model.markerId2) : 0,
       markerValues: (this.model.markerValues.length > 0) ? this.model.markerValues.map(v => v.value) : [],
       markerValues2: (this.model.markerValues2.length > 0) ? this.model.markerValues2.map(v => v.value) : [],
-      chartType: (chartType) ? parseInt(chartType) : 1
+      chartType: (chartType) ? parseInt(chartType) : 1,
+      sectorTypeId: this.selectedSectorTypeId
     };
 
     this.resetSearchResults();
@@ -584,7 +656,9 @@ export class LocationReportComponent implements OnInit {
               this.reportDataList.locationProjectsList.forEach((p) => {
                 p.isDisplay = false;
               });
-              var locationNames = this.reportDataList.locationProjectsList.map(p => p.locationName);
+              var rollUpList = this.getRollUpList();
+              this.rolledUpLocationList = rollUpList;
+              var locationNames = rollUpList.map(p => p.locationName);
               this.chartLables = locationNames;
               if (this.reportDataList.reportSettings) {
                 this.excelFile = this.reportDataList.reportSettings.excelReportName;
@@ -594,7 +668,7 @@ export class LocationReportComponent implements OnInit {
               if (!this.loadReport) {
                 this.manageDataToDisplay();
               }
-              
+            
               this.model.selectedCurrency = this.defaultCurrency;
               setTimeout(() => {
                 this.datedToday = this.storeService.getLongDateString(currentDate);
@@ -627,7 +701,9 @@ export class LocationReportComponent implements OnInit {
               this.reportDataList.locationProjectsList.forEach((p) => {
                 p.isDisplay = false;
               });
-              var locationNames = this.reportDataList.locationProjectsList.map(p => p.locationName);
+              var rollUpList = this.getRollUpList();
+              this.rolledUpLocationList = rollUpList;
+              var locationNames = rollUpList.map(p => p.locationName);
               this.chartLables = locationNames;
               if (this.reportDataList.reportSettings) {
                 this.excelFile = this.reportDataList.reportSettings.excelReportName;
@@ -707,6 +783,7 @@ export class LocationReportComponent implements OnInit {
     this.chartData = [];
     this.chartLables = [];
     this.reportDataList = [];
+    this.rolledUpLocationList = [];
   }
 
   noLocationChanged() {
@@ -770,6 +847,10 @@ export class LocationReportComponent implements OnInit {
       data => {
         if (data) {
           this.locationsList = data;
+          this.allLocationsMap = {};
+          (data || []).forEach(loc => {
+            this.allLocationsMap[loc.id] = loc;
+          });
           this.getSubLocationsList();
           
           if (this.loadReport) {
@@ -889,6 +970,18 @@ export class LocationReportComponent implements OnInit {
     this.manageResetDisplay();
   }
 
+  resetCounter: number = 0;
+
+  onCascadingLocationSelected(locationId: number) {
+    if (locationId != 0) {
+      this.model.selectedLocations = [{ id: locationId }];
+    } else {
+      this.model.selectedLocations = [];
+    }
+    this.model.selectedSubLocations = [];
+    this.searchProjectsByCriteriaReport();
+  }
+
   onSubLocationSelect(item: any) {
     this.setFilter();
   }
@@ -945,53 +1038,48 @@ export class LocationReportComponent implements OnInit {
     if (this.model.selectedDataOption) {
       selectedDataOption = parseInt(this.model.selectedDataOption);
     }
+    var rollUpList = this.getRollUpList();
 
     switch (selectedDataOption) {
       case this.dataOptionsCodes.PROJECTS:
-        this.chartData = this.reportDataList.locationProjectsList.map(p => p.projects.length);
+        this.chartData = rollUpList.map(p => p.projects.length);
         break;
 
       case this.dataOptionsCodes.FUNDING:
-        this.chartData = this.reportDataList.locationProjectsList.map(p => p.totalFunding);
+        this.chartData = rollUpList.map(p => p.totalFunding);
         break;
 
       case this.dataOptionsCodes.DISBURSEMENTS:
-        this.chartData = this.reportDataList.locationProjectsList.map(p => p.totalDisbursements);
+        this.chartData = rollUpList.map(p => p.totalDisbursements);
         break;
 
       default:
-        this.chartData = this.reportDataList.locationProjectsList.map(p => p.projects.length);
+        this.chartData = rollUpList.map(p => p.projects.length);
         break;
     }
   }
 
   getGrandTotalFundingForLocation() {
     var totalFunding = 0;
-    if (this.reportDataList && this.reportDataList.locationProjectsList) {
-      this.reportDataList.locationProjectsList.forEach(function (p) {
-        totalFunding += p.totalFunding;
-      });
-    }
+    this.rolledUpLocationList.forEach(function (p) {
+      totalFunding += p.totalFunding;
+    });
     return totalFunding;
   }
 
   getGrandTotalActualDisbursementForLocation() {
     var totalDisursement = 0;
-    if (this.reportDataList && this.reportDataList.locationProjectsList) {
-      this.reportDataList.locationProjectsList.forEach(function (p) {
-        totalDisursement += p.actualDisbursements;
-      });
-    }
+    this.rolledUpLocationList.forEach(function (p) {
+      totalDisursement += p.actualDisbursements;
+    });
     return totalDisursement;
   }
 
   getGrandTotalPlannedDisbursementForLocation() {
     var totalDisursement = 0;
-    if (this.reportDataList && this.reportDataList.locationProjectsList) {
-      this.reportDataList.locationProjectsList.forEach(function (p) {
-        totalDisursement += p.plannedDisbursements;
-      });
-    }
+    this.rolledUpLocationList.forEach(function (p) {
+      totalDisursement += p.plannedDisbursements;
+    });
     return totalDisursement;
   }
 
@@ -1064,6 +1152,7 @@ export class LocationReportComponent implements OnInit {
         }
       });
 
+      this.rolledUpLocationList = this.getRollUpList();
       this.getGrandTotalFundingForLocation();
       this.getGrandTotalActualDisbursementForLocation();
       this.getGrandTotalPlannedDisbursementForLocation();
@@ -1071,7 +1160,8 @@ export class LocationReportComponent implements OnInit {
       this.showChart = false;
       if (this.selectedDataOptions.indexOf(this.dataOptionsCodes.FUNDING) != -1) {
           this.chartData = [];
-          var locationFunding = this.reportDataList.locationProjectsList.map(p => p.totalFunding);
+          var rollUpList = this.getRollUpList();
+          var locationFunding = rollUpList.map(p => p.totalFunding);
           var chartData = { data: locationFunding, label: this.dataOptionLabels.FUNDING };
           this.chartData.push(chartData);
           this.doughnutChartData.push(locationFunding);
@@ -1080,7 +1170,7 @@ export class LocationReportComponent implements OnInit {
 
       if (this.selectedDataOptions.indexOf(this.dataOptionsCodes.DISBURSEMENTS) != -1) {
           this.chartData = [];
-          var locationDisbursements = this.reportDataList.locationProjectsList.map(p => p.totalDisbursements);
+          var locationDisbursements = rollUpList.map(p => p.totalDisbursements);
           var chartData = { data: locationDisbursements, label: this.dataOptionLabels.DISBURSEMENTS };
           this.chartData.push(chartData);
           this.doughnutChartData.push(locationDisbursements);
@@ -1098,11 +1188,12 @@ export class LocationReportComponent implements OnInit {
       this.chartData = [];
       this.doughnutChartData = [];
       this.showChart = false;
+      var rollUpList = this.getRollUpList();
 
       if (this.selectedDataOptions.indexOf(this.dataOptionsCodes.ACTUAL_DISBURSEMENTS) != -1) {
         var isDataExists = this.chartData.filter(d => d.label == this.dataOptionLabels.ACTUAL_DISBURSEMENTS);
         if (isDataExists.length == 0) {
-          var locationProjects = this.reportDataList.locationProjectsList.map(p => p.actualDisbursements);
+          var locationProjects = rollUpList.map(p => p.actualDisbursements);
           var chartData = { data: locationProjects, label: this.dataOptionLabels.ACTUAL_DISBURSEMENTS };
           this.chartData.push(chartData);
           this.doughnutChartData.push(locationProjects);
@@ -1116,7 +1207,7 @@ export class LocationReportComponent implements OnInit {
       if (this.selectedDataOptions.indexOf(this.dataOptionsCodes.PLANNED_DISBURSEMENTS) != -1) {
         var isDataExists = this.chartData.filter(d => d.label == this.dataOptionLabels.PLANNED_DISBURSEMENTS);
         if (isDataExists.length == 0) {
-          var plannedDisbursements = this.reportDataList.locationProjectsList.map(p => p.plannedDisbursements);
+          var plannedDisbursements = rollUpList.map(p => p.plannedDisbursements);
           var chartData = { data: plannedDisbursements, label: this.dataOptionLabels.PLANNED_DISBURSEMENTS };
           this.chartData.push(chartData);
           this.doughnutChartData.push(plannedDisbursements);
@@ -1130,7 +1221,7 @@ export class LocationReportComponent implements OnInit {
       if (this.selectedDataOptions.indexOf(this.dataOptionsCodes.DISBURSEMENTS) != -1) {
         var isDataExists = this.chartData.filter(d => d.label == this.dataOptionLabels.DISBURSEMENTS);
         if (isDataExists.length == 0) {
-          var locationDisbursements = this.reportDataList.locationProjectsList.map(p => p.totalDisbursements);
+          var locationDisbursements = rollUpList.map(p => p.totalDisbursements);
           var chartData = { data: locationDisbursements, label: this.dataOptionLabels.DISBURSEMENTS };
           this.chartData.push(chartData);
           this.doughnutChartData.push(locationDisbursements);
@@ -1159,8 +1250,8 @@ export class LocationReportComponent implements OnInit {
 
   setupStackedChartData() {
     this.stackedChartData = [];
-    var locationProjects = this.reportDataList.locationProjectsList;
-    this.stackedChartLabels = this.reportDataList.locationProjectsList.map(p => p.locationName);
+    var locationProjects = this.getRollUpList();
+    this.stackedChartLabels = locationProjects.map(p => p.locationName);
     var actualDisbursements = locationProjects.map(s => s.actualDisbursements);
     var plannedDisbursements = locationProjects.map(s => s.plannedDisbursements);
 
@@ -1187,6 +1278,71 @@ export class LocationReportComponent implements OnInit {
     }
   }
 
+  getRootStateId(locationId: number): number {
+    var current = this.allLocationsMap[locationId];
+    if (!current) return locationId;
+    var visited = new Set<number>();
+    while (current && current.parentLocationId && !visited.has(current.id)) {
+      visited.add(current.id);
+      current = this.allLocationsMap[current.parentLocationId];
+    }
+    return current ? current.id : locationId;
+  }
+
+  getRollUpList(): any[] {
+    if (!this.reportDataList || !this.reportDataList.locationProjectsList) {
+      return [];
+    }
+    var level = this.model.locationLevel || 1;
+    if (level == 3) {
+      return this.reportDataList.locationProjectsList;
+    }
+
+    var grouped: any = {};
+    var order: number[] = [];
+
+    this.reportDataList.locationProjectsList.forEach(loc => {
+      var targetId: number;
+      if (level == 1) {
+        targetId = this.getRootStateId(loc.locationId);
+      } else {
+        targetId = loc.parentLocationId ? loc.parentLocationId : loc.locationId;
+      }
+
+      if (!grouped[targetId]) {
+        var targetLoc = this.allLocationsMap[targetId];
+        grouped[targetId] = {
+          locationId: targetId,
+          locationName: targetLoc ? targetLoc.location : 'Unknown',
+          totalFunding: 0,
+          actualDisbursements: 0,
+          plannedDisbursements: 0,
+          totalDisbursements: 0,
+          projects: []
+        };
+        order.push(targetId);
+      }
+      var g = grouped[targetId];
+      g.totalFunding += loc.totalFunding || 0;
+      g.actualDisbursements += loc.actualDisbursements || 0;
+      g.plannedDisbursements += loc.plannedDisbursements || 0;
+      g.totalDisbursements += loc.totalDisbursements || 0;
+      if (loc.projects) {
+        g.projects = g.projects.concat(loc.projects);
+      }
+    });
+
+    return order.map(id => grouped[id]);
+  }
+
+  onLocationLevelChange() {
+    if (this.reportDataList && this.reportDataList.locationProjectsList) {
+      this.rolledUpLocationList = this.getRollUpList();
+      this.chartLables = this.rolledUpLocationList.map(p => p.locationName);
+      this.manageDataToDisplay();
+    }
+  }
+
   manageDataToDisplay() {
     this.chartData = [];
     var selectedDataOption = 1;
@@ -1208,32 +1364,31 @@ export class LocationReportComponent implements OnInit {
     } else if (chartType != this.chartTypeCodes.PIE && chartType != this.chartTypeCodes.POLAR) {
       this.manageDataOptions();
     } else {
+      var rollUpList = this.getRollUpList();
       switch (selectedDataOption) {
         case this.dataOptionsCodes.ACTUAL_DISBURSEMENTS:
-          this.chartData = this.reportDataList.locationProjectsList.map(p => p.actualDisbursements);
+          this.chartData = rollUpList.map(p => p.actualDisbursements);
           break;
   
         case this.dataOptionsCodes.PLANNED_DISBURSEMENTS:
-          this.chartData = this.reportDataList.locationProjectsList.map(p => p.plannedDisbursements);
+          this.chartData = rollUpList.map(p => p.plannedDisbursements);
           break;
   
         case this.dataOptionsCodes.DISBURSEMENTS:
-          this.chartData = this.reportDataList.locationProjectsList.map(p => p.totalDisbursements);
+          this.chartData = rollUpList.map(p => p.totalDisbursements);
           break;
   
         default:
-          this.chartData = this.reportDataList.locationProjectsList.map(p => p.actualDisbursements);
+          this.chartData = rollUpList.map(p => p.actualDisbursements);
           break;
       }
     }
   }
 
   displayHideRow(locationName) {
-    if (this.reportDataList.locationProjectsList) {
-      var selectLocation = this.reportDataList.locationProjectsList.filter(l => l.locationName == locationName);
-      if (selectLocation.length > 0) {
-        selectLocation[0].isDisplay = !selectLocation[0].isDisplay;
-      }
+    var selectLocation = this.rolledUpLocationList.filter(l => l.locationName == locationName);
+    if (selectLocation.length > 0) {
+      selectLocation[0].isDisplay = !selectLocation[0].isDisplay;
     }
   }
 
@@ -1311,6 +1466,7 @@ export class LocationReportComponent implements OnInit {
     this.model.sectorId = 0;
     this.model.sectorLevel = this.sectorLevelCodes.SECTORS;
     this.isAnyFilterSet = false;
+    this.resetCounter++;
   }
 
   formatNumber(value: number) {

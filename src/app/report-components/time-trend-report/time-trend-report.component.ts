@@ -14,6 +14,7 @@ import { ProjectService } from 'src/app/services/project.service';
 import { Settings } from 'src/app/config/settings';
 import { MarkerService } from 'src/app/services/marker.service';
 import { UrlHelperService } from 'src/app/services/url-helper-service';
+import { SectorTypeService } from 'src/app/services/sector-types.service';
 
 @Component({
   selector: 'time-trend-report',
@@ -78,6 +79,8 @@ export class TimeTrendReportComponent implements OnInit {
   isAnyFilterSet: boolean = false;
   chartType: string = 'bar';
   btnReportText: string = 'Update report';
+  sectorTypesList: any = [];
+  selectedSectorTypeId: number = 0;
 
   chartTypesList: any = [
     { id: 1, type: 'bar', title: 'Stacked bar' },
@@ -94,6 +97,17 @@ export class TimeTrendReportComponent implements OnInit {
     LINE: 2,
   };
 
+  ndpSectorLevels: any = [
+    { "id": 1, "level": "Parent sectors" },
+    { "id": 2, "level": "Sub sectors" },
+  ];
+
+  ntpSectorLevels: any = [
+    { "id": 0, "level": "Pillars" },
+    { "id": 1, "level": "Chapters" },
+    { "id": 2, "level": "Key Result Areas" },
+  ];
+
   sectorLevels: any = [
     { "id": 1, "level": "Parent sectors" },
     { "id": 2, "level": "Sub sectors" },
@@ -101,6 +115,7 @@ export class TimeTrendReportComponent implements OnInit {
 
   sectorLevelCodes: any = {
     NO_SECTORS: 4,
+    SUPER_SECTORS: 0,
     SECTORS: 1,
     SUB_SECTORS: 2,
     SUB_SUB_SECTORS: 3
@@ -246,7 +261,8 @@ export class TimeTrendReportComponent implements OnInit {
     private currencyService: CurrencyService, private errorModal: ErrorModalComponent,
     private route: ActivatedRoute, private projectService: ProjectService,
     private markerService: MarkerService,
-    private urlService: UrlHelperService
+    private urlService: UrlHelperService,
+    private sectorTypeService: SectorTypeService
   ) { }
 
   ngOnInit() {
@@ -280,6 +296,7 @@ export class TimeTrendReportComponent implements OnInit {
     }
 
     this.getProjectTitles();
+    this.getSectorTypesList();
     this.getSectorsList();
     this.getLocationsList();
     this.getOrganizationsList();
@@ -486,7 +503,8 @@ export class TimeTrendReportComponent implements OnInit {
       markerValues: (this.model.markerValues.length > 0) ? this.model.markerValues.map(v => v.value) : [],
       markerId2: (this.model.markerId2) ? parseInt(this.model.markerId2) : 0,
       markerValues2: (this.model.markerValues2.length > 0) ? this.model.markerValues2.map(v => v.value) : [],
-      chartType: (chartType) ? parseInt(chartType) : 0
+      chartType: (chartType) ? parseInt(chartType) : 0,
+      sectorTypeId: this.selectedSectorTypeId
     };
 
     this.resetSearchResults();
@@ -619,6 +637,59 @@ export class TimeTrendReportComponent implements OnInit {
     }
   }
 
+  getSectorTypesList() {
+    this.sectorTypeService.getSectorTypesList().subscribe(
+      data => {
+        if (data) {
+          this.sectorTypesList = data;
+          var defaultType = data.filter((t: any) => t.isPrimary == true);
+          if (defaultType.length > 0) {
+            this.selectedSectorTypeId = defaultType[0].id;
+            this.updateSectorLevels(this.selectedSectorTypeId);
+          }
+        }
+      }
+    );
+  }
+
+  updateSectorLevels(sectorTypeId: number) {
+    var selectedType = this.sectorTypesList.filter((t: any) => t.id == sectorTypeId);
+    var typeName = selectedType.length > 0 ? selectedType[0].typeName : '';
+    if (typeName.toLowerCase().indexOf('ntp') != -1) {
+      this.sectorLevels = this.ntpSectorLevels;
+    } else {
+      this.sectorLevels = this.ndpSectorLevels;
+    }
+  }
+
+  onSectorTypeChange() {
+    this.model.selectedSectors = [];
+    this.model.sectorLevel = this.sectorLevelCodes.SUPER_SECTORS;
+    this.updateSectorLevels(this.selectedSectorTypeId);
+    this.sectorsList = [];
+    this.allSectorsList = [];
+    this.subSectorIds = [];
+    this.subSubSectorIds = [];
+    if (!this.selectedSectorTypeId) {
+      this.getSectorsList();
+    } else {
+      this.sectorService.getSectorsForType(this.selectedSectorTypeId.toString()).subscribe(
+        data => {
+          if (data) {
+            this.allSectorsList = data;
+            var sectorsList = data.filter((s: any) => s.parentSector == null);
+            this.sectorsList = sectorsList;
+            var sectorIds = sectorsList.map((s: any) => s.id);
+            var subSectorsList = data.filter((s: any) => sectorIds.indexOf(s.parentSectorId) != -1);
+            this.subSectorIds = subSectorsList.map((s: any) => s.id);
+            var subSubSectors = data.filter((s: any) => this.subSectorIds.indexOf(s.parentSectorId) != -1);
+            this.subSubSectorIds = subSubSectors.map((s: any) => s.id);
+          }
+        }
+      );
+    }
+  }
+
   getSectorsList() {
     this.sectorService.getDefaultSectors().subscribe(
       data => {
@@ -670,18 +741,18 @@ export class TimeTrendReportComponent implements OnInit {
 
   manageSectorLevel() {
     this.model.selectedSectors = [];
-    if (this.model.sectorLevel) {
+    if (this.model.sectorLevel != null) {
       var level = parseInt(this.model.sectorLevel);
       switch (level) {
-        case this.sectorLevelCodes.SECTORS:
+        case this.sectorLevelCodes.SUPER_SECTORS:
           this.sectorsList = this.allSectorsList.filter(s => s.parentSectorId == 0);
           break;
 
-        case this.sectorLevelCodes.SUB_SECTORS:
+        case this.sectorLevelCodes.SECTORS:
           this.sectorsList = this.allSectorsList.filter(s => this.subSectorIds.indexOf(s.id) != -1);
           break;
 
-        case this.sectorLevelCodes.SUB_SUB_SECTORS:
+        case this.sectorLevelCodes.SUB_SECTORS:
           this.sectorsList = this.allSectorsList.filter(s => this.subSubSectorIds.indexOf(s.id) != -1);
           break;
 
@@ -876,6 +947,18 @@ export class TimeTrendReportComponent implements OnInit {
     this.filterSubLocations();
   }
 
+  resetCounter: number = 0;
+
+  onCascadingLocationSelected(locationId: number) {
+    this.model.locationId = locationId;
+    this.model.selectedSubLocations = [];
+    if (locationId != 0) {
+      this.setFilter();
+    } else {
+      this.manageResetDisplay();
+    }
+  }
+
   getGrandTotalFundingForYear() {
     var totalFunding = 0;
     if (this.reportDataList && this.reportDataList.yearlyProjectsList) {
@@ -1022,6 +1105,7 @@ export class TimeTrendReportComponent implements OnInit {
     this.filteredSubLocationsList = this.subLocationsList;
     this.model.locationId = 0;
     this.isAnyFilterSet = false;
+    this.resetCounter++;
   }
 
   formatNumber(value: number) {

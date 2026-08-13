@@ -28,6 +28,7 @@ export class DataEntryComponent implements OnInit {
   defaultSectorType: string = null;
   defaultSectorTypeId: number = 0;
   isForEdit: boolean = false;
+  returnTo: string = null;
   isUpdatingSectors: boolean = false;
   sectorTotalPercentage: number = 0;
   locationTotalPercentage: number = 0;
@@ -137,6 +138,8 @@ export class DataEntryComponent implements OnInit {
     if (!this.permissions.canEditProject) {
       this.router.navigateByUrl('projects');
     }
+
+    this.returnTo = localStorage.getItem('return-to');
 
     var projectId = localStorage.getItem('active-project');
     var projects = localStorage.getItem('selected-projects');
@@ -434,6 +437,18 @@ export class DataEntryComponent implements OnInit {
         this.exchangeRates = data;
       }
     );
+  }
+
+  get currentTabLabel(): string {
+    const labels: { [key: string]: string } = {
+      'basic': 'Basic Information',
+      'funding': 'Funding',
+      'financials': 'Financials',
+      'sectors': 'Sectors & Locations',
+      'markers': 'Markers',
+      'finish': 'Finish'
+    };
+    return labels[this.currentTab] || this.currentTab;
   }
 
   showBasicInfo() {

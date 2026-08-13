@@ -37,10 +37,13 @@
     "jspdf": "^2.3.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
+    "marked": "^12.0.2",
     "ng-block-ui": "^4.0.1",
     "ng-multiselect-dropdown": "^1.0.0",
     "ng2-charts": "^5.0.4",
+    "ngx-markdown": "^18.1.0",
     "ngx-pagination": "^6.0.3",
+    "playwright": "^1.62.1",
     "rxjs": "^7.8.2",
     "tslib": "^2.1.0",
     "zone.js": "~0.14.10"

@@ -14,6 +14,7 @@ import { Settings } from 'src/app/config/settings';
 import { ProjectService } from 'src/app/services/project.service';
 import { MarkerService } from 'src/app/services/marker.service';
 import { UrlHelperService } from 'src/app/services/url-helper-service';
+import { SectorTypeService } from 'src/app/services/sector-types.service';
 
 @Component({
   selector: 'sector-report',
@@ -120,10 +121,20 @@ export class SectorReportComponent implements OnInit {
     3: 2
   };
 
+  ndpSectorLevels: any = [
+    { "id": 0, "level": "Parent sectors" },
+    { "id": 1, "level": "Sub sectors" },
+  ];
+
+  ntpSectorLevels: any = [
+    { "id": 0, "level": "Pillars" },
+    { "id": 1, "level": "Chapters" },
+    { "id": 2, "level": "Key Result Areas" },
+  ];
+
   sectorLevels: any = [
     { "id": 0, "level": "Parent sectors" },
     { "id": 1, "level": "Sub sectors" },
-    { "id": 2, "level": "Sub-sub sectors" },
   ];
 
   sectorLevelCodes: any = {
@@ -162,6 +173,8 @@ export class SectorReportComponent implements OnInit {
   };
 
   reportDataList: any = [];
+  sectorTypesList: any = [];
+  selectedSectorTypeId: number = 0;
   dropdownSettings: any = {};
   barChartOptions: any = {
     scaleShowVerticalLines: false,
@@ -291,7 +304,8 @@ export class SectorReportComponent implements OnInit {
     private currencyService: CurrencyService, private errorModal: ErrorModalComponent,
     private route: ActivatedRoute, private projectService: ProjectService,
     private markerService: MarkerService,
-    private urlService: UrlHelperService
+    private urlService: UrlHelperService,
+    private sectorTypeService: SectorTypeService
   ) { }
 
   ngOnInit() {
@@ -342,6 +356,7 @@ export class SectorReportComponent implements OnInit {
       this.searchProjectsByCriteriaReport();
     }
     this.getProjectTitles();
+    this.getSectorTypesList();
     this.getSectorsList();
     this.getLocationsList();
     this.getOrganizationsList();
@@ -607,6 +622,7 @@ export class SectorReportComponent implements OnInit {
       chartType: (chartType) ? parseInt(chartType) : 1,
       level: (this.model.sectorLevel) ? parseInt(this.model.sectorLevel) : 0,
       sectorIds: (this.loadReport) ? this.paramSectorIds : this.model.selectedSectors.map(s => s.id),
+      sectorTypeId: this.selectedSectorTypeId ? this.selectedSectorTypeId : 0,
     };
 
     this.resetSearchResults();
@@ -1008,13 +1024,64 @@ export class SectorReportComponent implements OnInit {
   public chartHovered(e: any): void {
   }
 
+  getSectorTypesList() {
+    this.sectorTypeService.getSectorTypesList().subscribe(
+      data => {
+        if (data) {
+          this.sectorTypesList = data;
+          var defaultType = data.filter((t: any) => t.isPrimary == true);
+          if (defaultType.length > 0) {
+            this.selectedSectorTypeId = defaultType[0].id;
+            this.updateSectorLevels(this.selectedSectorTypeId);
+          }
+        }
+      }
+    );
+  }
+
+  updateSectorLevels(sectorTypeId: number) {
+    var selectedType = this.sectorTypesList.filter((t: any) => t.id == sectorTypeId);
+    var typeName = selectedType.length > 0 ? selectedType[0].typeName : '';
+    if (typeName.toLowerCase().indexOf('ntp') != -1) {
+      this.sectorLevels = this.ntpSectorLevels;
+    } else {
+      this.sectorLevels = this.ndpSectorLevels;
+    }
+  }
+
+  onSectorTypeChange() {
+    this.model.selectedSectors = [];
+    this.model.sectorLevel = this.sectorLevelCodes.SUPER_SECTORS;
+    this.updateSectorLevels(this.selectedSectorTypeId);
+    if (!this.selectedSectorTypeId) {
+      this.getSectorsList();
+    } else {
+      this.sectorService.getSectorsForType(this.selectedSectorTypeId.toString()).subscribe(
+        data => {
+          if (data) {
+            this.allSectorsList = data;
+            var sectorsList = data.filter((s: any) => !s.parentSectorId || s.parentSectorId == 0);
+            this.sectorsList = sectorsList;
+            var sectorIds = sectorsList.map((s: any) => s.id);
+            var subSectorsList = data.filter((s: any) => sectorIds.indexOf(s.parentSectorId) != -1);
+            var subSectorIds = subSectorsList.map((s: any) => s.id);
+            this.subSectorIds = subSectorIds;
+            var subSubSectors = data.filter((s: any) => subSectorIds.indexOf(s.parentSectorId) != -1);
+            var subSubSectorIds = subSubSectors.map((s: any) => s.id);
+            this.subSubSectorIds = subSubSectorIds;
+          }
+        }
+      );
+    }
+  }
+
   getSectorsList() {
     this.sectorService.getDefaultSectors().subscribe(
       data => {
         if (data) {
           var allSectorsList = data;
           this.allSectorsList = allSectorsList;
-          var sectorsList = allSectorsList.filter(s => s.parentSector == null); // super-parent
+          var sectorsList = allSectorsList.filter(s => !s.parentSectorId || s.parentSectorId == 0); // super-parent
           this.sectorsList = sectorsList;
           var sectorIds = sectorsList.map(s => s.id);
           var subSectorsList = allSectorsList.filter(s => sectorIds.indexOf(s.parentSectorId) != -1); //parent sectors
@@ -1251,6 +1318,18 @@ export class SectorReportComponent implements OnInit {
     this.model.selectedSubLocations = [];
     this.filterSubLocations();
   }
+
+  onCascadingLocationSelected(locationId: number) {
+    this.model.locationId = locationId;
+    this.model.selectedSubLocations = [];
+    if (locationId != 0) {
+      this.setFilter();
+    } else {
+      this.manageResetDisplay();
+    }
+  }
+
+  resetCounter: number = 0;
 
   manageDataToDisplay() {
     this.chartData = [];
@@ -1541,6 +1620,7 @@ export class SectorReportComponent implements OnInit {
     this.model.locationId = 0;
     this.filteredSubLocationsList = this.subLocationsList;
     this.isAnyFilterSet = false;
+    this.resetCounter++;
   }
 
   formatNumber(value: number) {

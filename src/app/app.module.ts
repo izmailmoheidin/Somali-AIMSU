@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { AuthInterceptor } from './helpers/auth.interceptor';
 // import { MatLegacyAutocompleteModule as MatAutocompleteModule } from '@angular/material/legacy-autocomplete';
 // import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
 // import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
@@ -20,6 +21,7 @@ import { NgChartsModule } from 'ng2-charts';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { AppRoutingModule } from './app.router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { AppComponent } from './main/app.component';
 import { LoginComponent } from './login/login.component';
@@ -139,6 +141,11 @@ import { SponsorLogosComponent } from './sponsor-logos/sponsor-logos.component';
 import { ManageSponsorLogosComponent } from './manage-sponsor-logos/manage-sponsor-logos.component';
 import { LeafletMapComponent } from './leaflet-map/leaflet-map.component';
 import { DeleteSublocationComponent } from './delete-sublocation/delete-sublocation.component';
+import { OperationsDashboardComponent } from './operations-dashboard/operations-dashboard.component';
+import { AIAssistantComponent } from './ai-assistant/ai-assistant.component';
+import { MyOrganizationComponent } from './my-organization/my-organization.component';
+import { StateProfileComponent } from './state-profile/state-profile.component';
+import { CascadingLocationPickerComponent } from './cascading-location-picker/cascading-location-picker.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -259,7 +266,12 @@ import { DeleteSublocationComponent } from './delete-sublocation/delete-sublocat
         SublocationModalComponent,
         SponsorLogosComponent,
         ManageSponsorLogosComponent,
-        LeafletMapComponent
+        LeafletMapComponent,
+        OperationsDashboardComponent,
+        AIAssistantComponent,
+        MyOrganizationComponent,
+        StateProfileComponent,
+        CascadingLocationPickerComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         BrowserAnimationsModule,
@@ -276,7 +288,9 @@ import { DeleteSublocationComponent } from './delete-sublocation/delete-sublocat
         BlockUIModule.forRoot(),
         NgChartsModule,
         NgMultiSelectDropDownModule.forRoot(),
-        FontAwesomeModule], providers: [
-        provideHttpClient(withInterceptorsFromDi())
+        FontAwesomeModule,
+        MarkdownModule.forRoot()], providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
     ] })
 export class AppModule { }

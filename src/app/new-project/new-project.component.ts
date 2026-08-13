@@ -404,6 +404,17 @@ export class NewProjectComponent implements OnInit {
     }, 500);
   }
 
+  resetCounter: number = 0;
+
+  onCascadingLocationSelected(locationId: number) {
+    if (locationId != 0) {
+      this.model.selectedLocations = [{ id: locationId }];
+    } else {
+      this.model.selectedLocations = [];
+    }
+    this.filterProjectMatches();
+  }
+
   onMarkerValueSelect() {
     this.filterProjectMatches();
   }
@@ -431,12 +442,8 @@ export class NewProjectComponent implements OnInit {
   }
 
   setDefaultDateFilters(): void {
-    var today = new Date();
-    var prevYear = today.getFullYear() - 1;
-    var month = ('0' + (today.getMonth() + 1)).slice(-2);
-    var day = ('0' + today.getDate()).slice(-2);
-    this.model.startDate = prevYear + '-01-01';
-    this.model.endDate = today.getFullYear() + '-' + month + '-' + day;
+    this.model.startDate = null;
+    this.model.endDate = null;
   }
 
   filterProjectMatches() {

@@ -2,7 +2,7 @@
   <div *ngIf="currentTab == tabConstants.FINANCIALS" class="card padding-20 margin-top-5">
     
     <div class="col-lg-12 col-md-12 col-sm-12">
-      <form class="form-signin" (ngSubmit)="saveDisbursements(financialsForm)" #financialsForm="ngForm">
+      <form class="form-signin" (ngSubmit)="financialsForm.form.valid && saveDisbursements(financialsForm)" #financialsForm="ngForm">
         <div class="col-offset-2 col-lg-10 col-md-10">
           <div class="input-group form-inline mb-3">
             <label class="col-md-3">Currency</label>
@@ -58,6 +58,11 @@
             <span class="margin-left-2 col-md-1" *ngIf="disbursement.disbursementType == disbursementTypeCodes.PLANNED" 
               tooltip="({{help.disbursementPlanned}} {{disbursement.financialYear}})" [options]="tooltipOptions">
               <button class="btn btn-info" type="button"><i class="fa fa-question-circle"></i></button>
+            </span>
+          </div>
+          <div *ngIf="financialsForm.submitted" class="alert alert-danger">
+            <span *ngFor="let d of projectDisbursements">
+              <span *ngIf="!d.amount || d.amount === ''">Disbursement amount for {{d.financialYear}} ({{d.disbursementType == 1 ? 'Actual' : 'Planned'}}) is required. </span>
             </span>
           </div>
 

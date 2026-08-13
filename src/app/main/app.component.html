@@ -12,6 +12,16 @@
             <a class="nav-link" [routerLink]="['/projects']" [ngClass]="{'active-link': isProjectsActive == true}">View
               projects</a>
           </li>
+          <li *ngIf="isLoggedIn" class="nav-item">
+            <a class="nav-link" [routerLink]="['/my-organization']" [ngClass]="{'active-link': isMyOrgActive == true}">My Organization</a>
+          </li>
+          <li *ngIf="isLoggedIn" class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button"
+              aria-haspopup="true" aria-expanded="false">State profiles</a>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" *ngFor="let s of stateLinks" [routerLink]="['/state-profile', s.id]">{{s.name}}</a>
+            </div>
+          </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" [ngClass]="{'active-link': isReportActive == true}"
               data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">View
@@ -47,6 +57,7 @@
               <a *ngIf="permissions.canEditSector" class="dropdown-item" [routerLink]="['/sector-types']">Sector
                 types</a>
               <a *ngIf="permissions.canEditSector" class="dropdown-item" [routerLink]="['/sectors']">Sectors</a>
+              <a *ngIf="permissions.canEditSector" class="dropdown-item" [routerLink]="['/manage-sector']">Manage Sector Hierarchy</a>
               <a *ngIf="permissions.canEditSector" class="dropdown-item" [routerLink]="['/sector-mappings']">Sector mappings</a>
               <a *ngIf="permissions.canEditCurrency" class="dropdown-item" [routerLink]="['/currencies']">Currencies</a>
               <a *ngIf="permissions.canEditCurrency" class="dropdown-item"

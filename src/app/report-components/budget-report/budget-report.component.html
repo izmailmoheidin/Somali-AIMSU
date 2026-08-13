@@ -46,6 +46,20 @@
                   </select>
                 </div>
 
+                <div class="col-md-3 form-inline" *ngIf="arrangementConstant == arrangementConstants.SECTORS">
+                  <label>Sector type: </label>&nbsp;&nbsp;
+                  <select class="form-control" name="sectorType" [(ngModel)]="selectedSectorTypeId"
+                    #sectorType="ngModel" (change)="onSectorTypeChange()">
+                    <option *ngFor="let type of sectorTypesList" [value]="type.id">
+                      {{type.typeName}}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-md-3" *ngIf="arrangementConstant == arrangementConstants.LOCATIONS">
+                  <app-cascading-location-picker [showLabels]="false" (locationSelected)="onCascadingLocationSelected($event)" [resetTrigger]="resetCounter"></app-cascading-location-picker>
+                </div>
+
                 <div class="col-md-6">
                   <span [class.disable]="!defaultCurrency" class="float-right">
                     <button type="submit" class="btn btn-info margin-top-2">{{btnReportText}}</button>&nbsp;
@@ -102,12 +116,44 @@
                   <th width="17%" class="text-right" *ngFor="let year of reportDataList.years">{{year.year}}</th>
                 </tr>
                 <ng-container *ngIf="arrangementConstant == arrangementConstants.SECTORS">
-                  <tr *ngFor="let sector of reportDataList.parentSectorDisbursements">
-                    <td><b>{{sector.sectorName}}</b></td>
-                    <td class="text-right" *ngFor="let d of sector.disbursements">
-                      {{formatNumber(d.totalValue)}}
-                    </td>
-                  </tr>
+                  <ng-container *ngFor="let sector of reportDataList.parentSectorDisbursements">
+                    <tr class="row-highlight" (click)="toggleSectorRow(sector.sectorId)">
+                      <td>
+                        <span *ngIf="sector.childSectorDisbursements && sector.childSectorDisbursements.length > 0">
+                          <i class="fa" [class.fa-plus-square]="!sector.isExpanded" [class.fa-minus-square]="sector.isExpanded"></i>&nbsp;
+                        </span>
+                        <b>{{sector.sectorName}}</b>
+                      </td>
+                      <td class="text-right" *ngFor="let d of sector.disbursements">
+                        <b>{{formatNumber(d.totalValue)}}</b>
+                      </td>
+                    </tr>
+                    <ng-container *ngIf="sector.childSectorDisbursements && sector.childSectorDisbursements.length > 0 && sector.isExpanded">
+                      <ng-container *ngFor="let chapter of sector.childSectorDisbursements">
+                        <tr class="child" (click)="toggleSectorRow(chapter.sectorId)">
+                          <td style="padding-left: 20px;">
+                            <span *ngIf="chapter.childSectorDisbursements && chapter.childSectorDisbursements.length > 0">
+                              <i class="fa" [class.fa-plus-square]="!chapter.isExpanded" [class.fa-minus-square]="chapter.isExpanded"></i>&nbsp;
+                            </span>
+                            {{chapter.sectorName}}
+                          </td>
+                          <td class="text-right" *ngFor="let d of chapter.disbursements">
+                            {{formatNumber(d.totalValue)}}
+                          </td>
+                        </tr>
+                        <ng-container *ngIf="chapter.childSectorDisbursements && chapter.childSectorDisbursements.length > 0 && chapter.isExpanded">
+                          <tr class="child" *ngFor="let kra of chapter.childSectorDisbursements">
+                            <td style="padding-left: 40px;">
+                              <i class="fa fa-circle-thin" style="font-size: 10px;"></i>&nbsp;{{kra.sectorName}}
+                            </td>
+                            <td class="text-right" *ngFor="let d of kra.disbursements">
+                              {{formatNumber(d.totalValue)}}
+                            </td>
+                          </tr>
+                        </ng-container>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
                 </ng-container>
                 <ng-container *ngIf="arrangementConstant == arrangementConstants.LOCATIONS">
                   <tr *ngFor="let location of reportDataList.locationDisbursements">

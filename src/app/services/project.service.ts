@@ -153,8 +153,36 @@ export class ProjectService {
   //Project sector functions
   addProjectSector(model: any) {
     var url = this.urlHelper.addProjectSectorUrl();
+    var apiModel;
+    if (model.projectSectors && Array.isArray(model.projectSectors)) {
+      // Batch mode: model has projectSectors array and newMappings
+      apiModel = {
+        ProjectId: model.projectId,
+        ProjectSectors: model.projectSectors.map(s => ({
+          SectorTypeId: s.sectorTypeId || 0,
+          SectorId: s.sectorId || 0,
+          Sector: s.sector || '',
+          MappingId: s.mappingId || 0,
+          FundsPercentage: s.fundsPercentage
+        })),
+        NewMappings: model.newMappings || []
+      };
+    } else {
+      // Single sector mode (legacy ProjectEntryComponent / project-sector component)
+      apiModel = {
+        ProjectId: model.projectId,
+        ProjectSectors: [{
+          SectorTypeId: model.sectorTypeId || 0,
+          SectorId: model.sectorId || 0,
+          Sector: model.sector || '',
+          MappingId: model.mappingId || 0,
+          FundsPercentage: model.fundsPercentage
+        }],
+        NewMappings: []
+      };
+    }
     return this.httpClient.post(url,
-      JSON.stringify(model), httpOptions).pipe(
+      JSON.stringify(apiModel), httpOptions).pipe(
         catchError(this.storeService.handleError<any>('New Project Sector')));
   }
 
@@ -168,6 +196,18 @@ export class ProjectService {
     var url = this.urlHelper.deleteProjectSectorUrl(projectId, sectorId);
     return this.httpClient.delete(url, httpOptions).pipe(
       catchError(this.storeService.handleError<any>('Delete Project Sector')));
+  }
+
+  updateProjectSectorPercentage(projectId: string, sectorId: string, newPercentage: number) {
+    var url = this.urlHelper.getBaseUrl() + 'Project/UpdateProjectSectorPercentage/' + projectId + '/' + sectorId + '/' + newPercentage;
+    return this.httpClient.put(url, {}, httpOptions).pipe(
+      catchError(this.storeService.handleError<any>('Update Project Sector Percentage')));
+  }
+
+  updateProjectLocationPercentage(projectId: string, locationId: string, newPercentage: number) {
+    var url = this.urlHelper.getBaseUrl() + 'Project/UpdateProjectLocationPercentage/' + projectId + '/' + locationId + '/' + newPercentage;
+    return this.httpClient.put(url, {}, httpOptions).pipe(
+      catchError(this.storeService.handleError<any>('Update Project Location Percentage')));
   }
 
   getDeleteProjectIds() {

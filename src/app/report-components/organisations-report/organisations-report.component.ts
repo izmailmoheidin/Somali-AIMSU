@@ -14,6 +14,7 @@ import { Settings } from 'src/app/config/settings';
 import { ProjectService } from 'src/app/services/project.service';
 import { MarkerService } from 'src/app/services/marker.service';
 import { UrlHelperService } from 'src/app/services/url-helper-service';
+import { SectorTypeService } from 'src/app/services/sector-types.service';
 import * as L from 'leaflet';
 import 'leaflet.markercluster';
 import { forkJoin } from 'rxjs';
@@ -364,6 +365,8 @@ onOrganizationDeSelectAll(event: any) {
   isDefaultCurrencySet: boolean = true;
   requestNo: number = 0;
   btnReportText: string = 'Update report';
+  sectorTypesList: any = [];
+  selectedSectorTypeId: number = 0;
 
   // Map properties
   projectLocations: any = [];
@@ -386,7 +389,8 @@ onOrganizationDeSelectAll(event: any) {
     private route: ActivatedRoute,
     private projectService: ProjectService,
     private markerService: MarkerService,
-    private urlService: UrlHelperService
+    private urlService: UrlHelperService,
+    private sectorTypeService: SectorTypeService
   ) { }
 
   ngOnInit() {
@@ -436,6 +440,7 @@ onOrganizationDeSelectAll(event: any) {
     }
 
     this.getProjectTitles();
+    this.getSectorTypesList();
     this.getSectorsList();
     this.getLocationsList();
     this.getOrganizationsList();
@@ -662,7 +667,8 @@ renderCharts() {
       locationId: this.model.locationId ? parseInt(this.model.locationId.toString()) : 0,
       subLocationIds: this.loadReport ? this.paramSubLocationIds : this.model.selectedSubLocations.map((l: any) => l.id),
       chartType: chartType ? parseInt(chartType.toString()) : 1,
-      sectorLevel: this.model.sectorLevel ? parseInt(this.model.sectorLevel.toString()) : 0
+      sectorLevel: this.model.sectorLevel ? parseInt(this.model.sectorLevel.toString()) : 0,
+      sectorTypeId: this.selectedSectorTypeId
     };
 
     this.resetSearchResults();
@@ -1327,6 +1333,56 @@ setupLineFinancialChart() {
     );
   }
 
+  getSectorTypesList() {
+    this.sectorTypeService.getSectorTypesList().subscribe(
+      data => {
+        if (data) {
+          this.sectorTypesList = data;
+          var defaultType = data.filter((t: any) => t.isPrimary == true);
+          if (defaultType.length > 0) {
+            this.selectedSectorTypeId = defaultType[0].id;
+          }
+        }
+      }
+    );
+  }
+
+  onSectorTypeChange() {
+    this.model.selectedSectors = [];
+    this.model.sectorLevel = 0;
+    this.sectorsList = [];
+    this.allSectorsList = [];
+    this.subSectorIds = [];
+    this.subSubSectorIds = [];
+    this.sectorLevels = [
+      { "id": 1, "level": "Parent sectors" },
+      { "id": 2, "level": "Sub sectors" },
+    ];
+    if (!this.selectedSectorTypeId) {
+      this.getSectorsList();
+    } else {
+      this.sectorService.getSectorsForType(this.selectedSectorTypeId.toString()).subscribe(
+        data => {
+          if (data) {
+            this.allSectorsList = data;
+            var sectorsList = data.filter((s: any) => s.parentSectorId == 0);
+            this.sectorsList = sectorsList;
+            var sectorIds = sectorsList.map((s: any) => s.id);
+            var subSectorsList = data.filter((s: any) => sectorIds.includes(s.parentSectorId));
+            this.subSectorIds = subSectorsList.map((s: any) => s.id);
+            var subSubSectors = data.filter((s: any) => this.subSectorIds.includes(s.parentSectorId));
+            this.subSubSectorIds = subSubSectors.map((s: any) => s.id);
+
+            if (this.subSubSectorIds.length > 0) {
+              this.sectorLevels.push({ id: 3, level: 'Sub-sub sectors' });
+              this.sectorLevels.sort((s: any) => s.id);
+            }
+          }
+        }
+      );
+    }
+  }
+
   getSectorsList() {
     this.sectorService.getDefaultSectors().subscribe(
       data => {
@@ -1681,6 +1737,18 @@ loadProjectLocations(): void {
     this.filterSubLocations();
   }
 
+  resetCounter: number = 0;
+
+  onCascadingLocationSelected(locationId: number) {
+    this.model.locationId = locationId;
+    this.model.selectedSubLocations = [];
+    if (locationId != 0) {
+      this.setFilter();
+    } else {
+      this.manageResetDisplay();
+    }
+  }
+
   onSubLocationSelect(item: any) {
     this.setFilter();
   }
@@ -1754,6 +1822,7 @@ loadProjectLocations(): void {
     this.model.locationId = 0;
     this.filteredSubLocationsList = this.subLocationsList || [];
     this.isAnyFilterSet = false;
+    this.resetCounter++;
   }
 
   resetSearchResults() {

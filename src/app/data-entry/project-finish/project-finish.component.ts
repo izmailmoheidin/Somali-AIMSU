@@ -29,6 +29,8 @@ export class ProjectFinishComponent implements OnInit {
   viewProjectDisbursements: any = [];
   @Input()
   viewProjectMarkers: any = [];
+  @Input()
+  returnTo: string = null;
 
   @BlockUI() blockUI: NgBlockUI;
   constructor(private projectInfoModal: ProjectInfoModalComponent, private projectService: ProjectService,
@@ -44,6 +46,7 @@ export class ProjectFinishComponent implements OnInit {
   }
 
   finishProject() {
+    localStorage.removeItem('return-to');
     this.router.navigateByUrl('new-project');
   }
 
@@ -65,7 +68,19 @@ export class ProjectFinishComponent implements OnInit {
   goToHome() {
     localStorage.setItem('selected-projects', null);
     localStorage.setItem('active-project', '0');
+    localStorage.removeItem('return-to');
     this.router.navigateByUrl('home');
+  }
+
+  goBack() {
+    localStorage.setItem('selected-projects', null);
+    localStorage.setItem('active-project', '0');
+    if (this.returnTo === 'my-organization') {
+      localStorage.removeItem('return-to');
+      this.router.navigateByUrl('my-organization');
+    } else {
+      this.router.navigateByUrl('projects');
+    }
   }
 
 

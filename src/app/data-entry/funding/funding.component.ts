@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, Input, ChangeDetectorRef, Output, EventEmitter, SimpleChanges } from '@angular/core';
+import { Component, OnInit, OnChanges, Input, ChangeDetectorRef, Output, EventEmitter, SimpleChanges, OnDestroy } from '@angular/core';
 import { FundingTypeService } from 'src/app/services/funding-type.service';
 import { CurrencyService } from 'src/app/services/currency.service';
 import { FundingService } from 'src/app/services/funding.service';
@@ -13,7 +13,7 @@ import { finalize } from 'rxjs';
   templateUrl: './funding.component.html',
   styleUrl: './funding.component.css'
 })
-export class FundingComponent implements OnInit, OnChanges {
+export class FundingComponent implements OnInit, OnChanges, OnDestroy {
   // Inputs from parent (data-entry component)
   @Input()
   projectData: any = {};
@@ -96,6 +96,12 @@ export class FundingComponent implements OnInit, OnChanges {
     }
     console.log('selected funders from basic data',this.projectFunders)
     //console.log(this.fundingTypesList)
+  }
+
+  ngOnDestroy() {
+    if (this.projectId && !this.isSaved && this.fundingList.length > 0) {
+      this.saveData();
+    }
   }
 
   loadFinancings(): void {

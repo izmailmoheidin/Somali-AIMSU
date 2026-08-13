@@ -160,7 +160,7 @@ export class ViewProjectComponent implements OnInit {
     this.projectService.getProjectLocations(id).subscribe(
       data => {
         this.hideLocationLoader();
-        this.projectLocations = data;
+        this.projectLocations = data || [];
       },
       error => {
         console.log(error);
@@ -172,7 +172,7 @@ export class ViewProjectComponent implements OnInit {
     this.projectService.getProjectSectors(id).subscribe(
       data => {
         this.hideSectorLoader();
-        this.projectSectors = data;
+        this.projectSectors = data || [];
       },
       error => {
         console.log(error);
@@ -184,7 +184,7 @@ export class ViewProjectComponent implements OnInit {
     this.projectService.getProjectFunders(id).subscribe(
       data => {
         this.hideFunderLoader();
-        this.projectFunders = data;
+        this.projectFunders = data || [];
       },
       error => {
         console.log(error);
@@ -196,7 +196,7 @@ export class ViewProjectComponent implements OnInit {
     this.projectService.getProjectImplementers(id).subscribe(
       data => {
         this.hideImplementerLoader();
-        this.projectImplementers = data;
+        this.projectImplementers = data || [];
       },
       error => {
         console.log(error);
@@ -208,7 +208,7 @@ export class ViewProjectComponent implements OnInit {
     this.projectService.getProjectDisbursements(id).subscribe(
       data => {
         this.hideDisbursementLoader();
-        this.projectDisbursements = data;
+        this.projectDisbursements = data || [];
       },
       error => {
         console.log(error);
@@ -220,7 +220,7 @@ export class ViewProjectComponent implements OnInit {
     this.projectService.getProjectDocuments(id).subscribe(
       data => {
         this.hideDocumentLoader();
-        this.projectDocuments = data;
+        this.projectDocuments = data || [];
       },
       error => {
         console.log(error);

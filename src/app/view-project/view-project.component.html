@@ -126,7 +126,7 @@
                           <th>Funds percentage</th>
                         </tr>
                         <tr *ngFor="let location of projectLocations">
-                          <td>{{location.location}}</td>
+                          <td>{{location.locationPath || location.location}}</td>
                           <td>{{location.fundsPercentage}}%</td>
                         </tr>
                       </tbody>

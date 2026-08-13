@@ -43,8 +43,18 @@ export class ReportService {
             catchError(this.storeService.handleError<any>('Projects By Ids')));
     }
 
-    getBudgetReport() {
+    getBudgetReport(sectorTypeId: number = 0, locationId: number = 0) {
       var url = this.urlHelper.getBudgetReportUrl();
+      var params: string[] = [];
+      if (sectorTypeId > 0) {
+        params.push('sectorTypeId=' + sectorTypeId);
+      }
+      if (locationId > 0) {
+        params.push('locationId=' + locationId);
+      }
+      if (params.length > 0) {
+        url += '?' + params.join('&');
+      }
       return this.httpClient.get(url, httpOptions).pipe(
         catchError(this.storeService.handleError<any>('Budget Report')));
     }

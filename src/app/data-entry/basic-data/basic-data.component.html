@@ -154,6 +154,9 @@
             </span>
           </div>
         </div>
+        <div *ngIf="projectForm.submitted && funderModel.selectedFunders.length == 0" class="alert alert-danger">
+          At least one funder is required
+        </div>
 
       </div>
 
@@ -223,6 +226,9 @@
             </tbody>
           </table>
         </div>
+        <div *ngIf="projectForm.submitted && implementerModel.selectedImplementers.length == 0" class="alert alert-danger">
+          At least one implementer is required
+        </div>
       </div>
     </div>
 
@@ -233,8 +239,11 @@
               {{descriptionLimitLeft}})</span></label>
           <textarea class="form-control" title="{{projectHelp.description}}" id="description"
             (input)="getDescriptionLimitInfo()" [(ngModel)]="projectData.description" name="description"
-            #description="ngModel" rows="5" maxlength="{{descriptionLimit}}">
+            #description="ngModel" rows="5" maxlength="{{descriptionLimit}}" required>
                             </textarea>
+          <div *ngIf="projectForm.submitted" [hidden]="description.valid" class="alert alert-danger">
+            Project description is required
+          </div>
         </div>
       </div>
     </div>

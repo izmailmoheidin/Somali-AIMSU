@@ -92,11 +92,16 @@ import { SponsorLogosComponent } from './sponsor-logos/sponsor-logos.component';
 import { ManageSponsorLogosComponent } from './manage-sponsor-logos/manage-sponsor-logos.component';
 import { LeafletMapComponent } from './leaflet-map/leaflet-map.component';
 import { DeleteSublocationComponent } from './delete-sublocation/delete-sublocation.component';
+import { OperationsDashboardComponent } from './operations-dashboard/operations-dashboard.component';
+import { AIAssistantComponent } from './ai-assistant/ai-assistant.component';
+import { MyOrganizationComponent } from './my-organization/my-organization.component';
+import { StateProfileComponent } from './state-profile/state-profile.component';
+import { AuthGuard } from './guards/auth.guard';
 
 // Route Configuration
 const routes: Routes = [
-  { path: '', component: HomeComponent},
-  { path: 'home', component: HomeComponent},
+  { path: '', component: OperationsDashboardComponent},
+  { path: 'home', component: OperationsDashboardComponent},
   { path: 'login', component: LoginComponent },
   { path: 'user-registration', component: UserRegistrationComponent},
   { path: 'user-org-registration', component: UserOrgRegistrationComponent },
@@ -200,6 +205,10 @@ const routes: Routes = [
   { path: 'document-links', component: DocumentLinkComponent },
   { path: 'manage-document-link', component: ManageDocumentLinkComponent },
   { path: 'map', component: LeafletMapComponent },
+  { path: 'operations', component: OperationsDashboardComponent },
+  { path: 'ai-assistant', component: AIAssistantComponent },
+  { path: 'my-organization', component: MyOrganizationComponent },
+  { path: 'state-profile/:id', component: StateProfileComponent, canActivate: [AuthGuard] },
   { path: '**', component: NotFoundComponent }
 ];
 

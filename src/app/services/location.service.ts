@@ -20,6 +20,18 @@ export class LocationService {
         catchError(this.storeService.handleError<any>('Locations')));
     }
 
+    getStates() {
+      var url = this.urlHelper.getLocationUrl() + '/GetStates';
+      return this.httpClient.get(url, httpOptions).pipe(
+        catchError(this.storeService.handleError<any>('Location States')));
+    }
+
+    getLocationChildren(parentId: number) {
+      var url = this.urlHelper.getLocationUrl() + '/GetChildren/' + parentId;
+      return this.httpClient.get(url, httpOptions).pipe(
+        catchError(this.storeService.handleError<any>('Location Children')));
+    }
+
     getSubLocationsList() {
       var url = this.urlHelper.getSubLocationUrl();
       return this.httpClient.get(url, httpOptions).pipe(

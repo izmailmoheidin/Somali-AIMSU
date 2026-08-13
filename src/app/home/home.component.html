@@ -8,263 +8,189 @@
   </div>
 
 
-  <div class="row">
+  <div class="row aims-stat-row">
 
-    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
-      <div class="card bg-light">
-        <div class="card-header">
-          <span class="float-left">
-            <h6>User accounts</h6>
-          </span>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 aims-stat-col">
+      <div class="aims-stat-card">
+        <div class="aims-stat-icon">
+          <fa-icon [icon]="faUser"></fa-icon>
         </div>
-        <div class="card-body text-info">
-          <div class="row">
-            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
-              <fa-icon [icon]="faUser" size="4x"></fa-icon>
-            </div>
-            <div class="col-xs-9 col-md-9 col-sm-9 col-xs-9 text-right">
-              <div class="font-dashboard-menu-item">{{usersCount}}</div>
-              <div>Registered users</div>
-            </div>
-          </div>
+        <div class="aims-stat-content">
+          <div class="aims-stat-label">Registered users</div>
+          <div class="aims-stat-value">{{usersCount}}</div>
+          <div class="aims-stat-sub">User accounts</div>
         </div>
       </div>
     </div>
 
-    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
-      <div class="card bg-light">
-        <div class="card-header">
-          <h6>AIMS projects</h6>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 aims-stat-col">
+      <div class="aims-stat-card">
+        <div class="aims-stat-icon">
+          <fa-icon [icon]="faTasks"></fa-icon>
         </div>
-        <div class="card-body text-danger">
-          <div class="row">
-            <div class="col-xs-3 col-md-3">
-              <fa-icon [icon]="faTasks" size="4x"></fa-icon>
-            </div>
-            <div class="col-xs-9 col-md-9 text-right">
-              <div class="font-dashboard-menu-item">{{projectsCount}}</div>
-              <div>Active projects</div>
-            </div>
-          </div>
+        <div class="aims-stat-content">
+          <div class="aims-stat-label">Active projects</div>
+          <div class="aims-stat-value">{{projectsCount}}</div>
+          <div class="aims-stat-sub">AIMS projects</div>
         </div>
       </div>
     </div>
 
-    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
-      <div class="card bg-light">
-        <div class="card-header">
-          <h6>Organizations</h6>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 aims-stat-col">
+      <div class="aims-stat-card">
+        <div class="aims-stat-icon">
+          <fa-icon [icon]="faBuilding"></fa-icon>
         </div>
-        <div class="card-body text-success">
-          <div class="row">
-            <div class="col-xs-3 col-md-3">
-              <fa-icon [icon]="faBuilding" size="4x"></fa-icon>
-            </div>
-            <div class="col-xs-9 col-sm-9 col-md-9 text-right">
-              <div class="font-dashboard-menu-item">{{organizationsCount}}</div>
-              <div>Organizations</div>
-            </div>
-          </div>
+        <div class="aims-stat-content">
+          <div class="aims-stat-label">Organizations</div>
+          <div class="aims-stat-value">{{organizationsCount}}</div>
+          <div class="aims-stat-sub">Registered partners</div>
         </div>
       </div>
     </div>
 
-    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
-      <div class="card bg-light">
-        <div class="card-header">
-          <small>
-            <b>{{currentFinancialYear}} disbursements to date</b>
-          </small>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 aims-stat-col">
+      <div class="aims-stat-card aims-stat-card-accent">
+        <div class="aims-stat-icon">
+          <fa-icon [icon]="faMoneyCheck"></fa-icon>
         </div>
-        <div class="card-body text-primary">
-          <div class="row">
-            <div class="col-xs-3 col-md-3">
-              <fa-icon [icon]="faMoneyCheck" size="4x"></fa-icon>
-            </div>
-            <div class="col-xs-9 col-md-9 text-right">
-              <div class="font-dashboard-menu-item-small">{{formatNumberWithCommas(currentYearDisbursements)}}</div>
-              <div>{{defaultCurrency}}</div>
-            </div>
-          </div>
+        <div class="aims-stat-content">
+          <div class="aims-stat-label">{{currentFinancialYear}} disbursements</div>
+          <div class="aims-stat-value aims-stat-value-money">{{formatNumberWithCommas(currentYearDisbursements)}}</div>
+          <div class="aims-stat-sub">{{defaultCurrency}}</div>
         </div>
       </div>
     </div>
 
   </div>
 
-  <div class="row margin-top-20">
-    <div class="col-lg-8 col-md-8 col-sm-12">
-      <div class="card bg-light">
-        <div class="card-header">
-          <span class="float-left">
-            <h6>{{model.introductionHeading}}</h6>
-          </span>
-          <!--<span class="float-right">
-            <a href="https://drive.google.com/open?id=12M0hoxH7VLGx5aemxBsB9hdas1Ec8ugT" target="_Blank" class="btn btn-sm btn-info text-uppercase">
-              Frequently asked questions
-            </a>
-          </span>-->
+  <div class="row aims-content-row">
+    <div class="col-lg-8 col-md-12 col-sm-12 aims-content-col">
+
+      <div class="aims-panel">
+        <div class="aims-panel-header">
+          <h6 class="aims-panel-title">{{model.introductionHeading}}</h6>
         </div>
-        <div class="card-body text-default">
-          <div class="row text-center" *ngIf="isIntroLoading">
-            <div class="col-md-12">
-              <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading introduction...</span>
-            </div>
+        <div class="aims-panel-body">
+          <div class="aims-loading" *ngIf="isIntroLoading">
+            <img src="assets/images/loader-md.gif" alt="" /><span>Loading introduction...</span>
           </div>
-          <div *ngIf="!isIntroLoading" [innerHTML]="model.introductionText" class="text-justify">
+          <div *ngIf="!isIntroLoading" [innerHTML]="model.introductionText" class="aims-intro-text">
           </div>
         </div>
       </div>
 
-
-      <div class="card bg-light margin-top-10">
-        <div class="card-header">
-          <span class="float-left">
-            <h6>Recently updated projects</h6>
-          </span>
+      <div class="aims-panel">
+        <div class="aims-panel-header">
+          <h6 class="aims-panel-title">Recently updated projects</h6>
         </div>
-        <div class="card-body bg-white padding-5">
-          <div class="row text-center" *ngIf="isProjectsLoading">
-            <div class="container">
-              <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading projects...</span>
-            </div>
+        <div class="aims-panel-body aims-panel-body-flush">
+          <div class="aims-loading" *ngIf="isProjectsLoading">
+            <img src="assets/images/loader-md.gif" alt="" /><span>Loading projects...</span>
           </div>
-          <div class="container">
-            <table *ngIf="latestProjects.length > 0" class="table table-striped table-condensed small">
+          <div class="aims-table-wrap" *ngIf="latestProjects.length > 0">
+            <table class="aims-table">
               <thead>
                 <tr>
-                  <th width="60%">Project</th>
-                  <th width="20%" class="text-center">Project value ({{defaultCurrencyCode}})</th>
-                  <th width="10%" class="text-center">Detail</th>
+                  <th>Project</th>
+                  <th class="text-right">Project value ({{defaultCurrencyCode}})</th>
+                  <th class="text-center">Detail</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let project of latestProjects">
-                  <td>{{project.title}}</td>
-                  <td class="text-center">{{project.projectCurrency}}
+                  <td class="aims-table-title">{{project.title}}</td>
+                  <td class="text-right aims-table-amount">{{project.projectCurrency}}
                     {{formatNumberWithCommas(project.projectCost)}}
                   </td>
                   <td class="text-center">
-                    <button class="btn btn-warning btn-sm" (click)="viewProjectDetail(project.id)">View
-                      detail</button>
+                    <button class="aims-btn aims-btn-outline" (click)="viewProjectDetail(project.id)">View detail</button>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <div *ngIf="latestProjects.length == 0 && !isProjectsLoading">
-              <span class="text-info"><i>No projects to show</i></span>
-            </div>
+          </div>
+          <div class="aims-empty" *ngIf="latestProjects.length == 0 && !isProjectsLoading">
+            No projects to show
           </div>
         </div>
       </div>
 
-      <div class="card bg-light margin-top-10">
-        <div class="card-header">
-          <span class="float-left">
-            <h6>Sponsors</h6>
-          </span>
+      <div class="aims-panel">
+        <div class="aims-panel-header">
+          <h6 class="aims-panel-title">Sponsors</h6>
         </div>
-        <div class="card-body bg-white padding-5">
-          <div class="row text-center" *ngIf="isSponsorsLoading">
-            <div class="container">
-              <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading sponsors...</span>
-            </div>
+        <div class="aims-panel-body">
+          <div class="aims-loading" *ngIf="isSponsorsLoading">
+            <img src="assets/images/loader-md.gif" alt="" /><span>Loading sponsors...</span>
           </div>
-          <div class="container">
-            <ng-container *ngIf="sponsors.length > 0">
-              <div class="row">
-                <div class="col-md-3 margin-top-20" *ngFor="let sponsor of sponsors">
-                  <img title="{{sponsor.title}}" src="{{sponsor.logoPath}}" />
-                </div>
+          <ng-container *ngIf="sponsors.length > 0">
+            <div class="aims-sponsor-grid">
+              <div class="aims-sponsor-item" *ngFor="let sponsor of sponsors">
+                <img title="{{sponsor.title}}" alt="{{sponsor.title}}" src="{{sponsor.logoPath}}" />
               </div>
-            </ng-container>
-
-            <div *ngIf="sponsors.length == 0 && !isSponsorsLoading">
-              <span class="text-info"><i>No sponsors to show</i></span>
             </div>
+          </ng-container>
+          <div class="aims-empty" *ngIf="sponsors.length == 0 && !isSponsorsLoading">
+            No sponsors to show
           </div>
         </div>
       </div>
-
 
     </div>
 
+    <div class="col-lg-4 col-md-12 col-sm-12 aims-content-col">
 
-    <div class="col-lg-4 col-md-4 col-sm-12">
-      <div class="row">
-
-        <div class="col-md-12 col-lg-12 col-sm-12">
-          <div class="card bg-light">
-            <div class="card-header">
-              <span class="float-left">
-                <h6>Learn about AIMS</h6>
-              </span>
-            </div>
-            <div class="card-body bg-white padding-5">
-              <div class="row">
-                <div class="col-md-12">
-                  <iframe width="560" height="315" [src]="videoOneUrl" title="YouTube video player" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                </div>
-                <div class="col-md-12 margin-top-10">
-                  <iframe width="560" height="315" [src]="videoTwoUrl" title="YouTube video player" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                </div>
-              </div>
-            </div>
+      <div class="aims-panel">
+        <div class="aims-panel-header">
+          <h6 class="aims-panel-title">Learn about AIMS</h6>
+        </div>
+        <div class="aims-panel-body">
+          <div class="aims-video-wrap">
+            <iframe [src]="videoOneUrl" title="YouTube video player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <div class="aims-video-wrap aims-video-wrap-spaced">
+            <iframe [src]="videoTwoUrl" title="YouTube video player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
           </div>
         </div>
-
-        <div class="col-md-12 col-lg-12 col-sm-12 margin-top-10">
-          <div class="card bg-light">
-            <div class="card-header">
-              <span class="float-left">
-                <h6>Important links</h6>
-              </span>
-            </div>
-            <div class="card-body bg-white padding-5">
-              <div class="row text-center" *ngIf="isLinkLoading">
-                <div class="container">
-                  <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading links...</span>
-                </div>
-              </div>
-              <div class="container">
-                <table *ngIf="links.length > 0" class="table table-condensed small">
-                  <tbody>
-                    <tr *ngFor="let link of links">
-                      <td>
-                        <a href="{{link.url}}" target="_blank" class="text-info">
-                          {{link.title}}
-                        </a>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div *ngIf="links.length == 0 && !isLinkLoading">
-                  <span class="text-info"><i>No links to show</i></span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div *ngIf="permissions.canManage" class="col-md-12 col-lg-12 col-sm-12 margin-top-10">
-          <div class="card bg-light">
-            <div class="card-header">
-              <span class="float-left">
-                <h6>Administration</h6>
-              </span>
-            </div>
-            <button class="btn btn-info" (click)="openHangfireDashboard()">
-              Hangfire Dashboard
-            </button>
-          </div>
-        </div>
-
       </div>
+
+      <div class="aims-panel">
+        <div class="aims-panel-header">
+          <h6 class="aims-panel-title">Important links</h6>
+        </div>
+        <div class="aims-panel-body aims-panel-body-flush">
+          <div class="aims-loading" *ngIf="isLinkLoading">
+            <img src="assets/images/loader-md.gif" alt="" /><span>Loading links...</span>
+          </div>
+          <ul class="aims-link-list" *ngIf="links.length > 0">
+            <li *ngFor="let link of links">
+              <a href="{{link.url}}" target="_blank">
+                {{link.title}}
+              </a>
+            </li>
+          </ul>
+          <div class="aims-empty" *ngIf="links.length == 0 && !isLinkLoading">
+            No links to show
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="permissions.canManage" class="aims-panel">
+        <div class="aims-panel-header">
+          <h6 class="aims-panel-title">Administration</h6>
+        </div>
+        <div class="aims-panel-body">
+          <button class="aims-btn aims-btn-primary" (click)="openHangfireDashboard()">
+            Hangfire Dashboard
+          </button>
+        </div>
+      </div>
+
     </div>
 
   </div>

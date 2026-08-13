@@ -35,6 +35,9 @@ yarn-error.log
 testem.log
 /typings
 
+# E2E test scripts (temporary)
+/e2e
+
 # System Files
 .DS_Store
 Thumbs.db

@@ -1,16 +1,23 @@
-<div class="container-fluid view-area">
+<div class="container-fluid view-area pe-page">
   <block-ui>
+
+    <div class="pe-header">
+      <div class="pe-header-left">
+        <h1 class="pe-title">Sector Mappings</h1>
+        <span class="pe-subtitle">Map external sector types to NDP sectors</span>
+      </div>
+    </div>
+
+    <div class="pe-tabs">
+      <a class="pe-tab active">Sector mappings</a>
+    </div>
 
     <div class="row">
       <div class="col-md-12">
-        <ul class="nav nav-tabs">
-          <!--<li class="nav-item">
-            <a class="nav-link text-info" data-toggle="tab" [routerLink]="['/sectors']">Sectors list</a>
-          </li>-->
-          <li class="nav-item">
-            <a class="nav-link active btn-info" data-toggle="tab">Sector mappings</a>
-          </li>
-        </ul>
+        <div *ngIf="showSuccess" class="alert alert-success alert-dismissible" style="font-size: 0.9rem; padding: 12px 18px; margin: 10px 0;">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>Success!</strong> {{successMessage}}
+        </div>
       </div>
     </div>
 
@@ -63,9 +70,11 @@
                     <td>
                       <select class="form-control" name="sector" (change)="addOrUpdateSectorMapping(sector.id)" [(ngModel)]="sector.mappingId" #mappingId="ngModel">
                         <option value="null">--Un-mapped--</option>
-                        <option *ngFor="let sec of defaultSectors" value={{sec.id}}>
-                          {{sec.sectorName}}
-                        </option>
+                        <optgroup *ngFor="let group of groupedDefaultSectors" [label]="group.label">
+                          <option *ngFor="let sec of group.options" value={{sec.id}}>
+                            {{sec.sectorName}}
+                          </option>
+                        </optgroup>
                       </select>
                     </td>
                   </tr>

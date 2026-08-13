@@ -1008,4 +1008,8 @@ export class UrlHelperService {
         var baseWithoutApi = this.BASE_URL.substring(0, this.BASE_URL.length - 4);
         return baseWithoutApi + 'hangfire';
     }
+
+    getAIAssistantAskUrl() {
+        return (this.BASE_URL + urlsList.urls.aiAssistantAsk);
+    }
 }

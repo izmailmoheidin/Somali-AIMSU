@@ -85,6 +85,20 @@ export class ProjectEntryComponent implements OnInit {
   errorMessage: string = '';
   startDateModel: NgbDateStruct;
   currentTab: string = 'project';
+  get currentTabLabel(): string {
+    const labels: { [key: string]: string } = {
+      'project': 'Name & Description',
+      'funder': 'Funders & Financing',
+      'implementer': 'Implementers',
+      'sector': 'Sectors',
+      'location': 'Locations',
+      'document': 'Documents',
+      'disbursement': 'Disbursements',
+      'customFields': 'Custom Fields',
+      'finish': 'Finish Project'
+    };
+    return labels[this.currentTab] || this.currentTab;
+  }
   sectorSelectionForm: UntypedFormGroup;
   sectorInput = new UntypedFormControl();
   locationSelectionForm: UntypedFormGroup;
@@ -157,6 +171,14 @@ export class ProjectEntryComponent implements OnInit {
   sectorMappings: any = [];
   defaultSectorsList: any = [];
   filteredExRateSources: any = [];
+
+  // Cascading sector picker state
+  cascadingPillars: any[] = [];
+  cascadingChapters: any[] = [];
+  cascadingKRAs: any[] = [];
+  selectedPillarId: number = null;
+  selectedChapterId: number = null;
+  selectedKRAId: number = null;
   fieldTypes: any = Settings.markerTypes;
   yearLowerLimit: number = 0;
   yearUpperLimit: number = 0;
@@ -217,9 +239,17 @@ export class ProjectEntryComponent implements OnInit {
     'DISBURSEMENT': 2
   }
 
-  model = { id: 0, title: '', startDate: null, endDate: null, description: null };
+  model: any = { id: 0, title: '', startDate: null, endDate: null, description: null, projectValue: 0, projectCurrency: 'USD', exchangeRate: 1, fundingTypeId: 1 };
   sectorModel = { projectId: 0, sectorTypeId: null, sectorId: null, mappingId: null, sectorObj: null, sectorName: '', parentId: 0, fundsPercentage: 0.0 };
   locationModel = { projectId: 0, locationId: null, latitude: 0.0, longitude: 0.0, location: '', fundsPercentage: 0 };
+
+  // Cascading location picker state
+  cascadingStates: any[] = [];
+  cascadingRegions: any[] = [];
+  cascadingDistricts: any[] = [];
+  selectedStateId: number = null;
+  selectedRegionId: number = null;
+  selectedDistrictId: number = null;
   documentModel = { id: 0, projectId: 0, documentTitle: null, documentUrl: null };
   funderModel = {
     id: 0, projectId: 0, funder: null, dated: null, exRateSource: null,
@@ -477,11 +507,70 @@ export class ProjectEntryComponent implements OnInit {
     this.locationService.getLocationsList().subscribe(
       data => {
         this.locationsList = data;
+        this.cascadingStates = this.locationsList.filter(l => (l.parentLocationId == null || l.parentLocationId == undefined) && l.isUnAttributed == false);
       },
       error => {
         console.log(error);
       }
     );
+  }
+
+  onStateChange() {
+    this.selectedRegionId = null;
+    this.selectedDistrictId = null;
+    this.cascadingDistricts = [];
+    this.cascadingRegions = [];
+    if (this.selectedStateId) {
+      this.locationService.getLocationChildren(this.selectedStateId).subscribe(
+        data => {
+          this.cascadingRegions = data || [];
+        },
+        error => {
+          console.log('Error loading regions:', error);
+        }
+      );
+    }
+    this.updateSelectedLocation();
+  }
+
+  onRegionChange() {
+    this.selectedDistrictId = null;
+    this.cascadingDistricts = [];
+    if (this.selectedRegionId) {
+      this.locationService.getLocationChildren(this.selectedRegionId).subscribe(
+        data => {
+          this.cascadingDistricts = data || [];
+        },
+        error => {
+          console.log('Error loading districts:', error);
+        }
+      );
+    }
+    this.updateSelectedLocation();
+  }
+
+  onDistrictChange() {
+    this.updateSelectedLocation();
+  }
+
+  updateSelectedLocation() {
+    var selectedId = this.selectedDistrictId || this.selectedRegionId || this.selectedStateId;
+    if (selectedId) {
+      this.locationModel.locationId = selectedId;
+      var location = this.cascadingStates.find(l => l.id == selectedId);
+      if (!location) {
+        location = this.cascadingRegions.find(l => l.id == selectedId);
+      }
+      if (!location) {
+        location = this.cascadingDistricts.find(l => l.id == selectedId);
+      }
+      if (location) {
+        this.locationModel.location = location.location;
+      }
+    } else {
+      this.locationModel.locationId = null;
+      this.locationModel.location = '';
+    }
   }
 
   loadDefaultCurrency() {
@@ -778,9 +867,6 @@ export class ProjectEntryComponent implements OnInit {
           this.sectorMappings = data;
           this.mappedSectorsList = data;
           this.mappingsCount = data.length;
-          if (data.length >= 1) {
-            this.sectorModel.mappingId = data[0].id;
-          }
         } else {
           this.mappingsCount = 0;
           this.sectorMappings = this.defaultSectorsList;
@@ -825,8 +911,49 @@ export class ProjectEntryComponent implements OnInit {
     var filterValue = (this.sectorModel.sectorObj && (typeof this.sectorModel.sectorObj == 'string')) ? this.sectorModel.sectorObj.toLowerCase() : this.sectorModel.sectorObj;
     if (typeof filterValue == 'string') {
       this.filteredSectors = this.typeSectorsList.filter(s =>
-        s.sectorName.toLowerCase().indexOf(filterValue) != -1);
+        (s.sectorWithCode || s.sectorName).toLowerCase().indexOf(filterValue) != -1);
     }
+  }
+
+  buildHierarchicalSectorList(sectors: any[]): any[] {
+    var sectorMap: any = {};
+    var roots: any[] = [];
+    var result: any[] = [];
+
+    sectors.forEach(s => {
+      sectorMap[s.id] = { ...s, children: [] };
+    });
+
+    sectors.forEach(s => {
+      var node = sectorMap[s.id];
+      if (s.parentSectorId && sectorMap[s.parentSectorId]) {
+        sectorMap[s.parentSectorId].children.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+
+    var flatten = (nodes: any[], depth: number) => {
+      nodes.forEach(node => {
+        var prefix = '';
+        if (depth === 0) {
+          prefix = '\u25B8 ';
+        } else if (depth === 1) {
+          prefix = '\u00A0\u00A0\u25AA ';
+        } else {
+          prefix = '\u00A0\u00A0\u00A0\u00A0\u2022 ';
+        }
+        node.sectorWithCode = prefix + node.sectorName;
+        result.push(node);
+        if (node.children && node.children.length > 0) {
+          flatten(node.children, depth + 1);
+        }
+      });
+    };
+
+    roots.sort((a, b) => a.sectorName.localeCompare(b.sectorName));
+    flatten(roots, 0);
+    return result;
   }
 
   enterIATILocation(e) {
@@ -1266,24 +1393,107 @@ export class ProjectEntryComponent implements OnInit {
       this.mappingsCount = 0;
       this.showMappingAuto = false;
       this.showMappingManual = true;
+
+      // Keep typeSectorsList for backward compatibility (used in save method)
       this.typeSectorsList = this.sectorsList.filter(s => s.sectorTypeId == this.sectorModel.sectorTypeId);
       this.filteredSectors = this.typeSectorsList;
-      if (setSectorId != 0) {
-        var selectSector = this.sectorsList.filter(s => s.id == setSectorId);
-        if (selectSector.length > 0) {
-          this.sectorModel.sectorObj = selectSector[0];
-          this.selectedSectorId = setSectorId;
-          this.sectorModel.sectorId = setSectorId;
-          this.showSectorMappings();
-        }
-        this.sectorModel.sectorId = setSectorId;
+
+      // Initialize cascading dropdowns
+      this.initCascadingSectors(setSectorId);
+    }
+  }
+
+  initCascadingSectors(setSectorId: number = 0) {
+    // Reset all cascading state
+    this.selectedPillarId = null;
+    this.selectedChapterId = null;
+    this.selectedKRAId = null;
+    this.cascadingChapters = [];
+    this.cascadingKRAs = [];
+
+    // Get pillars (root sectors) for the selected type
+    this.cascadingPillars = this.sectorsList.filter(s =>
+      s.sectorTypeId == this.sectorModel.sectorTypeId &&
+      (!s.parentSectorId || s.parentSectorId == 0)
+    );
+
+    if (setSectorId != 0) {
+      this.initCascadingForEdit(setSectorId);
+    }
+  }
+
+  initCascadingForEdit(setSectorId: number) {
+    var sector = this.sectorsList.find(s => s.id == setSectorId);
+    if (!sector) return;
+
+    if (!sector.parentSectorId || sector.parentSectorId == 0) {
+      // Sector is a Pillar (root)
+      this.selectedPillarId = sector.id;
+      this.cascadingChapters = this.sectorsList.filter(s => s.parentSectorId == this.selectedPillarId);
+    } else {
+      var parent = this.sectorsList.find(s => s.id == sector.parentSectorId);
+      if (parent && parent.parentSectorId && parent.parentSectorId != 0) {
+        // Sector is a KRA (3 levels deep)
+        this.selectedPillarId = parent.parentSectorId;
+        this.cascadingChapters = this.sectorsList.filter(s => s.parentSectorId == this.selectedPillarId);
+        this.selectedChapterId = parent.id;
+        this.cascadingKRAs = this.sectorsList.filter(s => s.parentSectorId == this.selectedChapterId);
+        this.selectedKRAId = sector.id;
+      } else {
+        // Sector is a Chapter/Sub-sector (2 levels deep)
+        this.selectedPillarId = sector.parentSectorId;
+        this.cascadingChapters = this.sectorsList.filter(s => s.parentSectorId == this.selectedPillarId);
+        this.selectedChapterId = sector.id;
+        this.cascadingKRAs = this.sectorsList.filter(s => s.parentSectorId == this.selectedChapterId);
       }
+    }
+    this.updateSelectedSector();
+  }
+
+  onPillarChange() {
+    this.selectedChapterId = null;
+    this.selectedKRAId = null;
+    this.cascadingKRAs = [];
+    this.cascadingChapters = this.sectorsList.filter(s => s.parentSectorId == this.selectedPillarId);
+    this.updateSelectedSector();
+  }
+
+  onChapterChange() {
+    this.selectedKRAId = null;
+    this.cascadingKRAs = this.sectorsList.filter(s => s.parentSectorId == this.selectedChapterId);
+    this.updateSelectedSector();
+  }
+
+  onKRAChange() {
+    this.updateSelectedSector();
+  }
+
+  updateSelectedSector() {
+    // The final selected sector is the most specific one chosen
+    var sectorId = this.selectedKRAId || this.selectedChapterId || this.selectedPillarId;
+    if (sectorId) {
+      this.selectedSectorId = sectorId;
+      this.sectorModel.sectorId = sectorId;
+      var sector = this.sectorsList.find(s => s.id == sectorId);
+      if (sector) {
+        this.sectorModel.sectorName = sector.sectorName;
+        this.sectorModel.sectorObj = sector;
+      }
+      // If non-primary type, get mappings
+      if (this.sectorModel.sectorTypeId != this.defaultSectorTypeId && this.sectorModel.sectorTypeId != this.primarySectorTypeId) {
+        this.getSectorMappings();
+      }
+    } else {
+      this.selectedSectorId = 0;
+      this.sectorModel.sectorId = null;
+      this.sectorModel.sectorName = '';
+      this.sectorModel.sectorObj = null;
     }
   }
 
   showSectorMappings() {
     if (this.sectorModel.sectorId) {
-      var selectedSector = this.typeSectorsList.filter(s => s.id == this.sectorModel.sectorId);
+      var selectedSector = this.sectorsList.filter(s => s.id == this.sectorModel.sectorId);
       if (selectedSector.length > 0) {
         this.sectorModel.sectorName = selectedSector[0].sectorName;
         this.getSectorMappings();
@@ -1407,8 +1617,8 @@ export class ProjectEntryComponent implements OnInit {
   /* Saving different section of project */
   saveProject(frm: any) {
     this.currentEntryForm = frm;
-    var startDate = new Date(this.model.startDate);
-    var endDate = new Date(this.model.endDate);
+    var startDate = new Date(this.model.startDate.year, this.model.startDate.month - 1, this.model.startDate.day);
+    var endDate = new Date(this.model.endDate.year, this.model.endDate.month - 1, this.model.endDate.day);
 
     if (startDate > endDate) {
       this.errorMessage = 'Start date cannot be greater than end date';
@@ -1416,11 +1626,20 @@ export class ProjectEntryComponent implements OnInit {
       return false;
     }
 
+    var startingYear = startDate.getFullYear();
+    var endingYear = endDate.getFullYear();
+
     var model = {
       Title: this.model.title,
-      StartDate: startDate,
-      EndDate: endDate,
-      Description: this.model.description
+      StartDate: startDate.toISOString(),
+      EndDate: endDate.toISOString(),
+      Description: this.model.description,
+      StartingFinancialYear: startingYear,
+      EndingFinancialYear: endingYear,
+      ProjectValue: this.model.projectValue || 0,
+      ProjectCurrency: this.model.projectCurrency || 'USD',
+      ExchangeRate: this.model.exchangeRate || 1,
+      FundingTypeId: this.model.fundingTypeId || 1
     };
 
     this.isProjectBtnDisabled = true;
@@ -1554,6 +1773,8 @@ export class ProjectEntryComponent implements OnInit {
       sectorTypeId: this.sectorModel.sectorTypeId,
       projectId: projectId,
       sectorId: this.sectorModel.mappingId,
+      sector: sectorName || this.sectorModel.sectorName || '',
+      mappingId: 0,
       fundsPercentage: this.sectorModel.fundsPercentage,
     };
 
@@ -1614,30 +1835,28 @@ export class ProjectEntryComponent implements OnInit {
         projectSectorModel.sectorId = this.selectedSectorId;
         this.addProjectSector(projectSectorModel);
       } else {
-        if (!this.sectorModel.mappingId) {
-          this.errorMessage = 'Sector mapping is required';
-          this.errorModal.openModal();
-          return false;
-        }
+        if (this.sectorModel.mappingId && this.sectorModel.mappingId != 0 && this.sectorModel.mappingId != '0') {
+          var mappedSectorModel = {
+            sectorTypeId: this.sectorModel.sectorTypeId,
+            sectorId: this.sectorModel.sectorId,
+            sectorName: sectorName,
+            parentId: 0,
+            mappingSectorId: this.sectorModel.mappingId
+          };
 
-        var mappedSectorModel = {
-          sectorTypeId: this.sectorModel.sectorTypeId,
-          sectorId: this.sectorModel.sectorId,
-          sectorName: sectorName,
-          parentId: 0,
-          mappingSectorId: this.sectorModel.mappingId
-        };
-
-        this.sectorService.addSectorWithMapping(mappedSectorModel).subscribe(
-          data => {
-            if (data) {
-              this.addProjectSector(projectSectorModel);
-            } else {
-              this.blockUI.stop();
+          this.sectorService.addSectorWithMapping(mappedSectorModel).subscribe(
+            data => {
+              if (data) {
+                this.addProjectSector(projectSectorModel);
+              } else {
+                this.blockUI.stop();
+              }
             }
-          }
-        );
-
+          );
+        } else {
+          projectSectorModel.sectorId = this.selectedSectorId;
+          this.addProjectSector(projectSectorModel);
+        }
       }
     }
   }
@@ -2078,7 +2297,11 @@ export class ProjectEntryComponent implements OnInit {
   }
 
   addProjectFunder(model: any) {
-    this.projectService.addProjectFunder(model).subscribe(
+    var apiModel = {
+      projectId: model.projectId,
+      funderIds: [model.funderId]
+    };
+    this.projectService.addProjectFunder(apiModel).subscribe(
       data => {
         if (data) {
           model.funder = this.funderModel.funder;
@@ -2223,7 +2446,14 @@ export class ProjectEntryComponent implements OnInit {
   }
 
   addProjectImplementer(model: any) {
-    this.projectService.addProjectImplementer(model).subscribe(
+    var apiModel = {
+      projectId: model.projectId,
+      implementers: [{
+        implementerId: model.implementerId,
+        fundsPercentage: 0
+      }]
+    };
+    this.projectService.addProjectImplementer(apiModel).subscribe(
       data => {
         if (data) {
           this.currentProjectImplementersList.push(model);
@@ -2938,6 +3168,11 @@ export class ProjectEntryComponent implements OnInit {
     this.locationModel.projectId = 0;
     this.locationModel.locationId = null;
     this.locationModel.location = '';
+    this.selectedStateId = null;
+    this.selectedRegionId = null;
+    this.selectedDistrictId = null;
+    this.cascadingRegions = [];
+    this.cascadingDistricts = [];
   }
 
   resetFunderEntry() {

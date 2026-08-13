@@ -32,6 +32,8 @@ export class ManageSectorComponent implements OnInit {
   sectorChildren: any = [];
   requestNo: number = 0;
   isError: boolean = false;
+  showSuccess: boolean = false;
+  successMessage: string = '';
   model = { id: 0, sectorTypeId: 0, sectorName: null, parentId: 0 };
   superParentModel = { sectorTypeId: 0, sectorName: null };
   parentSectorModel = { sectorTypeId: 0, sectorName: null, parentId: 0 };
@@ -39,6 +41,7 @@ export class ManageSectorComponent implements OnInit {
   superParents: any = [];
   parentSectors: any = [];
   activeTab: string = 'superParent';
+  selectedSectorTypeId: number = 0;
   permissions: any = {};
   @BlockUI() blockUI!: NgBlockUI;
 
@@ -97,6 +100,7 @@ export class ManageSectorComponent implements OnInit {
           this.editableSectorTypes = this.sectorTypes.map((t: any) => t.id);
           if (defaultSectorType.length > 0) {
             const defaultTypeId = defaultSectorType[0].id;
+            this.selectedSectorTypeId = defaultTypeId;
             this.model.sectorTypeId = defaultTypeId;
             this.superParentModel.sectorTypeId = defaultTypeId;
             this.parentSectorModel.sectorTypeId = defaultTypeId;
@@ -113,9 +117,9 @@ export class ManageSectorComponent implements OnInit {
       data => {
         if (data) {
           this.allSectors = data;
-          this.sectors = this.allSectors.filter((s: any) => s.sectorTypeId == this.model.sectorTypeId && s.parentSector == null);
-          this.filterSuperParentOptions(this.superParentModel.sectorTypeId);
-          this.filterParentOptions(this.childSectorModel.sectorTypeId);
+          this.filterSuperParentOptions(this.selectedSectorTypeId);
+          this.filterParentOptions(this.selectedSectorTypeId);
+          this.filterEditParentSectors(this.selectedSectorTypeId);
         }
       }
     );
@@ -129,31 +133,26 @@ export class ManageSectorComponent implements OnInit {
     if (typeId <= 0) {
       return [];
     }
-    return this.allSectors.filter((s: any) => s.sectorTypeId == typeId && (!s.parentId || s.parentId == 0));
+    return this.allSectors.filter((s: any) => s.sectorTypeId == typeId && (!s.parentSectorId || s.parentSectorId == 0));
   }
 
-  getSuperParentSectors(typeId: number) {
+  getChildSectorsOfType(typeId: number) {
     if (typeId <= 0) {
       return [];
     }
-    // Super-parents are stored at root level in the same table.
-    // Return all root sectors (actual super-parents will be a subset stored in DB later).
-    return this.getRootSectors(typeId);
+    return this.allSectors.filter((s: any) => s.sectorTypeId == typeId && s.parentSectorId && s.parentSectorId != 0);
   }
 
   filterSuperParentOptions(typeId: number) {
-    this.superParents = this.getSuperParentSectors(typeId);
+    this.superParents = this.getRootSectors(typeId);
   }
 
   filterParentOptions(typeId: number) {
     if (typeId > 0) {
-      // Use root sectors as the source of truth for parents.
       const rootSectors = this.getRootSectors(typeId);
       if (rootSectors.length > 0) {
         const rootIds = rootSectors.map((s: any) => s.id);
-        // parentSectors are those whose parentId is one of the root sector ids
-        this.parentSectors = this.allSectors.filter((s: any) => s.sectorTypeId == typeId && s.parentId && rootIds.includes(s.parentId));
-        // If no second-level parents exist yet, expose root sectors as possible parents
+        this.parentSectors = this.allSectors.filter((s: any) => s.sectorTypeId == typeId && s.parentSectorId && rootIds.includes(s.parentSectorId));
         if (this.parentSectors.length === 0) {
           this.parentSectors = rootSectors;
         }
@@ -165,13 +164,27 @@ export class ManageSectorComponent implements OnInit {
     }
   }
 
+  onSectorTypeChange(typeId: number) {
+    this.selectedSectorTypeId = typeId;
+    this.superParentModel.sectorTypeId = typeId;
+    this.parentSectorModel.sectorTypeId = typeId;
+    this.childSectorModel.sectorTypeId = typeId;
+    this.filterSuperParentOptions(typeId);
+    this.filterParentOptions(typeId);
+  }
+
   setActiveTab(tab: string) {
     this.activeTab = tab;
     if (tab === 'parent') {
-      this.filterSuperParentOptions(this.parentSectorModel.sectorTypeId);
+      this.parentSectorModel.sectorTypeId = this.selectedSectorTypeId;
+      this.filterSuperParentOptions(this.selectedSectorTypeId);
     }
     if (tab === 'child') {
-      this.filterParentOptions(this.childSectorModel.sectorTypeId);
+      this.childSectorModel.sectorTypeId = this.selectedSectorTypeId;
+      this.filterParentOptions(this.selectedSectorTypeId);
+    }
+    if (tab === 'superParent') {
+      this.superParentModel.sectorTypeId = this.selectedSectorTypeId;
     }
   }
 
@@ -200,6 +213,8 @@ export class ManageSectorComponent implements OnInit {
           this.model.sectorTypeId = data.sectorTypeId;
           this.model.parentId = data.parentId;
           this.model.sectorName = data.sectorName;
+          this.selectedSectorTypeId = data.sectorTypeId;
+          this.filterEditParentSectors(data.sectorTypeId);
         }
         this.isLoading = false;
       },
@@ -207,6 +222,33 @@ export class ManageSectorComponent implements OnInit {
         console.log('Request Failed: ', error);
       }
     );
+  }
+
+  filterEditParentSectors(typeId?: number) {
+    const sectorTypeId = typeId || this.model.sectorTypeId;
+    if (sectorTypeId <= 0) {
+      this.sectors = [];
+      return;
+    }
+    const currentSector = this.allSectors.find((s: any) => s.id == this.model.id);
+    if (currentSector && (!currentSector.parentSectorId || currentSector.parentSectorId == 0)) {
+      this.sectors = [];
+    } else {
+      const rootSectors = this.getRootSectors(sectorTypeId);
+      if (rootSectors.length > 0) {
+        const rootIds = rootSectors.map((s: any) => s.id);
+        const secondLevel = this.allSectors.filter((s: any) => s.sectorTypeId == sectorTypeId && s.parentSectorId && rootIds.includes(s.parentSectorId));
+        if (secondLevel.length > 0 && currentSector && currentSector.parentSectorId && rootIds.includes(currentSector.parentSectorId)) {
+          this.sectors = rootSectors;
+        } else if (secondLevel.length > 0) {
+          this.sectors = secondLevel;
+        } else {
+          this.sectors = rootSectors;
+        }
+      } else {
+        this.sectors = [];
+      }
+    }
   }
 
   saveSector() {
@@ -223,8 +265,7 @@ export class ManageSectorComponent implements OnInit {
         () => {
           if (!this.isError) {
             const message = 'Sector' + Messages.RECORD_UPDATED;
-            this.storeService.newInfoMessage(message);
-            this.router.navigateByUrl('sectors');
+            this.showSuccessAndRedirect(message);
           } else {
             this.resetFormState();
           }
@@ -241,8 +282,7 @@ export class ManageSectorComponent implements OnInit {
         () => {
           if (!this.isError) {
             const message = 'New sector' + Messages.NEW_RECORD;
-            this.storeService.newInfoMessage(message);
-            this.router.navigateByUrl('sectors');
+            this.showSuccessAndRedirect(message);
           } else {
             this.resetFormState();
           }
@@ -268,9 +308,8 @@ export class ManageSectorComponent implements OnInit {
     this.sectorService.addSector(model).subscribe(
       () => {
         if (!this.isError) {
-          const message = 'New super parent sector' + Messages.NEW_RECORD;
-          this.storeService.newInfoMessage(message);
-          this.router.navigateByUrl('sectors');
+          const message = 'New top-level sector' + Messages.NEW_RECORD;
+          this.showSuccessAndRedirect(message);
         } else {
           this.resetFormState();
         }
@@ -295,9 +334,8 @@ export class ManageSectorComponent implements OnInit {
     this.sectorService.addSector(model).subscribe(
       () => {
         if (!this.isError) {
-          const message = 'New parent sector' + Messages.NEW_RECORD;
-          this.storeService.newInfoMessage(message);
-          this.router.navigateByUrl('sectors');
+          const message = 'New mid-level sector' + Messages.NEW_RECORD;
+          this.showSuccessAndRedirect(message);
         } else {
           this.resetFormState();
         }
@@ -312,7 +350,7 @@ export class ManageSectorComponent implements OnInit {
 
   saveChildSector() {
     this.isBtnDisabled = true;
-    this.blockUI.start('Saving child sector...');
+    this.blockUI.start('Saving detail-level sector...');
     const model = {
       SectorTypeId: parseInt(this.childSectorModel.sectorTypeId.toString()),
       SectorName: this.childSectorModel.sectorName,
@@ -323,9 +361,8 @@ export class ManageSectorComponent implements OnInit {
       () => {
         this.blockUI.stop();
         if (!this.isError) {
-          const message = 'New child sector' + Messages.NEW_RECORD;
-          this.storeService.newInfoMessage(message);
-          this.router.navigateByUrl('sectors');
+          const message = 'New detail-level sector' + Messages.NEW_RECORD;
+          this.showSuccessAndRedirect(message);
         } else {
           this.resetFormState();
         }
@@ -362,6 +399,15 @@ export class ManageSectorComponent implements OnInit {
     } else {
       this.btnText = 'Add Sector';
     }
+  }
+
+  showSuccessAndRedirect(message: string) {
+    this.successMessage = message;
+    this.showSuccess = true;
+    this.storeService.newInfoMessage(message);
+    setTimeout(() => {
+      this.router.navigateByUrl('sectors');
+    }, 1500);
   }
 
 }

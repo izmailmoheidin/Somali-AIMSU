@@ -15,6 +15,7 @@ import { InfoModalComponent } from '../info-modal/info-modal.component';
 import { Messages } from '../config/messages';
 import { CurrencyService } from '../services/currency.service';
 import { ProjectReportModalComponent } from '../project-report-modal/project-report-modal.component';
+import { SectorTypeService } from '../services/sector-types.service';
 
 @Component({
   selector: 'app-projects',
@@ -78,23 +79,37 @@ export class ProjectsComponent implements OnInit {
   excelFile: string = null;
   projectProfileLink: string = null;
 
+  ndpSectorLevels: any = [
+    { "id": 0, "level": "Pillars" },
+    { "id": 1, "level": "Sub sectors" },
+  ];
+
+  ntpSectorLevels: any = [
+    { "id": 0, "level": "Pillars" },
+    { "id": 1, "level": "Chapters" },
+    { "id": 2, "level": "Key Result Areas" },
+  ];
+
   sectorLevels: any = [
-    { "id": 1, "level": "Parent sectors"},
-    { "id": 2, "level": "Sub sectors"},
-    //{ "id": 3, "level": "Sub sub sectors"},
+    { "id": 0, "level": "Pillars" },
+    { "id": 1, "level": "Sub sectors" },
   ];
 
   sectorLevelCodes: any = {
-    SECTORS: 1,
+    SUPER_SECTORS: 0,
+    PARENT_SECTORS: 1,
     SUB_SECTORS: 2,
   }
+
+  sectorTypesList: any = [];
+  selectedSectorTypeId: number = 0;
 
   model: any = {
     title: null, description: null, organizationIds: [], startingYear: 0, endingYear: 0,
     sectorIds: [], locationIds: [], parentSectorId: 0, selectedProjects: [], selectedSectors: [], 
     selectedOrganizations: [], selectedLocations: [], sectorsList: [], locationsList: [],
     selectedSubLocations: [], 
-    organizationsList: [], sectorLevel: this.sectorLevelCodes.SECTORS, financialRange: 0,
+    organizationsList: [], sectorLevel: this.sectorLevelCodes.SUPER_SECTORS, financialRange: 0,
     lowerRange: null, upperRange: null
   }
 
@@ -106,7 +121,8 @@ export class ProjectsComponent implements OnInit {
     private locationService: LocationService, private fyService: FinancialYearService,
     private errorModal: ErrorModalComponent, private infoModal: InfoModalComponent,
     private currencyService: CurrencyService,
-    private projectReportModal: ProjectReportModalComponent
+    private projectReportModal: ProjectReportModalComponent,
+    private sectorTypeService: SectorTypeService
   ) { }
 
   ngOnInit() {
@@ -136,6 +152,7 @@ export class ProjectsComponent implements OnInit {
 
     this.permissions = this.securityService.getUserPermissions();
     this.getProjectTitles();
+    this.getSectorTypesList();
     this.getSectorsList();
     this.getOrganizationsList();
     this.getLocationsList();
@@ -194,128 +211,174 @@ export class ProjectsComponent implements OnInit {
   }
 
   onSelectProject(item: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   onDeSelectProject(item: any) {
-    if (this.model.selectedProjects.length == 0) {
-      this.manageResetDisplay();
+    if (this.model.selectedProjects.length == 0 && this.noOtherFiltersSet()) {
+      this.resetDisplay();
     } else {
-      this.setFilter();
+      this.applyFilter();
     }
   }
 
   onSelectAllProjects(items: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   onDeSelectAllProjects(items: any) {
     this.model.selectedProjects = [];
-    this.manageResetDisplay();
+    if (this.noOtherFiltersSet()) {
+      this.resetDisplay();
+    } else {
+      this.applyFilter();
+    }
   }
 
   onSelectSector(item: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   onDeSelectSector(item: any) {
     var id = item.id;
-    if (this.model.selectedSectors.length == 0) {
-      this.manageResetDisplay();
+    if (this.model.selectedSectors.length == 0 && this.noOtherFiltersSet()) {
+      this.resetDisplay();
     } else {
-      this.setFilter();
+      this.applyFilter();
     }
   }
 
   onSelectAllSectors(items: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   onDeSelectAllSectors(items: any) {
     this.model.selectedSectors = [];
-    this.manageResetDisplay();
+    if (this.noOtherFiltersSet()) {
+      this.resetDisplay();
+    } else {
+      this.applyFilter();
+    }
   }
 
   onSelectOrganization(item: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   changeFinancialRange() {
     if (this.model.financialRange) {
-      this.setFilter();
+      this.applyFilter();
     } else {
-      this.manageResetDisplay();
+      if (this.noOtherFiltersSet()) {
+        this.resetDisplay();
+      } else {
+        this.applyFilter();
+      }
     }
   }
 
   onDeSelectOrganization(item: any) {
     var id = item.id;
-    if (this.model.selectedOrganizations.length == 0) {
-      this.manageResetDisplay();
+    if (this.model.selectedOrganizations.length == 0 && this.noOtherFiltersSet()) {
+      this.resetDisplay();
     } else {
-      this.setFilter();
+      this.applyFilter();
     }
   }
 
   onSelectAllOrganizations(items: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   onDeSelectAllOrganizations(items: any) {
     this.model.selectedOrganizations = [];
-    this.manageResetDisplay();
+    if (this.noOtherFiltersSet()) {
+      this.resetDisplay();
+    } else {
+      this.applyFilter();
+    }
   }
 
   onSelectLocation(item: any) {
-    this.setFilter();
+    this.applyFilter();
     this.filterSubLocations();
   }
 
   onDeSelectLocation(item: any) {
     var id = item.id;
-    if (this.model.selectedLocations.length == 0) {
-      this.manageResetDisplay();
+    if (this.model.selectedLocations.length == 0 && this.noOtherFiltersSet()) {
+      this.resetDisplay();
     } else {
-      this.setFilter();
+      this.applyFilter();
     }
     this.filterSubLocations();
   }
 
   onSelectAllLocations(items: any) {
-    this.setFilter();
+    this.applyFilter();
     this.filterSubLocations();
   }
 
   onDeSelectAllLocations(items: any) {
     this.model.selectedLocations = [];
-    this.manageResetDisplay();
+    if (this.noOtherFiltersSet()) {
+      this.resetDisplay();
+    } else {
+      this.applyFilter();
+    }
     this.filterSubLocations();
   }
 
+  resetCounter: number = 0;
+
+  onCascadingLocationSelected(locationId: number) {
+    if (locationId != 0) {
+      this.model.selectedLocations = [{ id: locationId }];
+    } else {
+      this.model.selectedLocations = [];
+    }
+    this.model.selectedSubLocations = [];
+    if (locationId == 0 && this.noOtherFiltersSet()) {
+      this.resetDisplay();
+    } else {
+      this.applyFilter();
+    }
+  }
+
   onSubLocationSelect(item: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   onSubLocationDeSelect(item: any) {
-    if (this.model.selectedLocations.length == 0) {
-      this.manageResetDisplay();
-    } 
+    if (this.model.selectedLocations.length == 0 && this.noOtherFiltersSet()) {
+      this.resetDisplay();
+    } else {
+      this.applyFilter();
+    }
   }
 
   onSubLocationSelectAll(items: any) {
-    this.setFilter();
+    this.applyFilter();
   }
 
   onSubLocationDeSelectAll(items: any) {
     this.model.selectedLocations = [];
-    this.manageResetDisplay();
+    if (this.noOtherFiltersSet()) {
+      this.resetDisplay();
+    } else {
+      this.applyFilter();
+    }
   }
 
   startingYearChanged() {
     if (this.model.startingYear != 0) {
-      this.setFilter();
+      this.applyFilter();
     } else {
-      this.manageResetDisplay();
+      if (this.noOtherFiltersSet()) {
+        this.resetDisplay();
+      } else {
+        this.applyFilter();
+      }
     }
   }
 
@@ -333,17 +396,25 @@ export class ProjectsComponent implements OnInit {
 
   endingYearChanged() {
     if (this.model.endingYear != 0) {
-      this.setFilter();
+      this.applyFilter();
     } else {
-      this.manageResetDisplay();
+      if (this.noOtherFiltersSet()) {
+        this.resetDisplay();
+      } else {
+        this.applyFilter();
+      }
     }
   }
 
   descriptionChanged() {
-    if (this.model.description.length > 0) {
-      this.setFilter();
+    if (this.model.description && this.model.description.length > 0) {
+      this.applyFilter();
     } else {
-      this.manageResetDisplay();
+      if (this.noOtherFiltersSet()) {
+        this.resetDisplay();
+      } else {
+        this.applyFilter();
+      }
     }
   }
 
@@ -351,25 +422,29 @@ export class ProjectsComponent implements OnInit {
     if (this.model.sectorLevel) {
       var level = parseInt(this.model.sectorLevel);
       switch(level) {
-        case this.sectorLevelCodes.SECTORS:
-            this.sectorsList = this.allSectorsList.filter(s => s.parentSectorId == 0);
+        case this.sectorLevelCodes.SUPER_SECTORS:
+            this.sectorsList = this.allSectorsList.filter(s => !s.parentSectorId || s.parentSectorId == 0);
           break;
         
-        case this.sectorLevelCodes.SUB_SECTORS:
+        case this.sectorLevelCodes.PARENT_SECTORS:
             this.sectorsList = this.allSectorsList.filter(s => this.subSectorIds.indexOf(s.id) != -1);
           break;
 
-        case this.sectorLevelCodes.SUB_SUB_SECTORS:
+        case this.sectorLevelCodes.SUB_SECTORS:
             this.sectorsList = this.allSectorsList.filter(s => this.subSubSectorIds.indexOf(s.id) != -1);
           break;
 
         default:
-          this.sectorsList = this.allSectorsList.filter(s => s.parentSectorId == 0);
+          this.sectorsList = this.allSectorsList.filter(s => !s.parentSectorId || s.parentSectorId == 0);
           break;
       }
-      this.setFilter();
+      this.applyFilter();
     } else {
-      this.manageResetDisplay();
+      if (this.noOtherFiltersSet()) {
+        this.resetDisplay();
+      } else {
+        this.applyFilter();
+      }
     }
   }
 
@@ -446,23 +521,67 @@ export class ProjectsComponent implements OnInit {
       data => {
         if (data) {
           this.allSectorsList = data;
-          this.sectorsList = this.allSectorsList.filter(s => s.parentSectorId == 0);
+          this.sectorsList = this.allSectorsList.filter(s => !s.parentSectorId || s.parentSectorId == 0);
           this.sectorIds = this.sectorsList.map(s => s.id);
           var subSectorsList = this.allSectorsList.filter(s => this.sectorIds.indexOf(s.parentSectorId) != -1);
           this.subSectorIds = subSectorsList.map(s => s.id);
           var subSubSectors = this.allSectorsList.filter(s => this.subSectorIds.indexOf(s.parentSectorId) != -1);
           this.subSubSectorIds = subSubSectors.map(s => s.id);
+        }
+      }
+    );
+  }
 
-          if (this.subSubSectorIds.length > 0) {
-            this.sectorLevels.push({
-              id: 3,
-              level: 'Sub-sub sectors'
-            });
-            this.sectorLevels.sort(s => s.id);
+  getSectorTypesList() {
+    this.sectorTypeService.getSectorTypesList().subscribe(
+      data => {
+        if (data) {
+          this.sectorTypesList = data;
+          var defaultType = data.filter((t: any) => t.isPrimary == true);
+          if (defaultType.length > 0) {
+            this.selectedSectorTypeId = defaultType[0].id;
+            this.updateSectorLevels(this.selectedSectorTypeId);
           }
         }
       }
     );
+  }
+
+  updateSectorLevels(sectorTypeId: number) {
+    var selectedType = this.sectorTypesList.filter((t: any) => t.id == sectorTypeId);
+    var typeName = selectedType.length > 0 ? selectedType[0].typeName : '';
+    if (typeName.toLowerCase().indexOf('ntp') != -1) {
+      this.sectorLevels = this.ntpSectorLevels;
+    } else {
+      this.sectorLevels = this.ndpSectorLevels;
+    }
+  }
+
+  onSectorTypeChange() {
+    this.model.selectedSectors = [];
+    this.model.sectorLevel = this.sectorLevelCodes.SUPER_SECTORS;
+    this.updateSectorLevels(this.selectedSectorTypeId);
+    if (!this.selectedSectorTypeId) {
+      this.getSectorsList();
+    } else {
+      this.sectorService.getSectorsForType(this.selectedSectorTypeId.toString()).subscribe(
+        data => {
+          if (data) {
+            this.allSectorsList = data;
+            var sectorsList = data.filter((s: any) => !s.parentSectorId || s.parentSectorId == 0);
+            this.sectorsList = sectorsList;
+            var sectorIds = sectorsList.map((s: any) => s.id);
+            var subSectorsList = data.filter((s: any) => sectorIds.indexOf(s.parentSectorId) != -1);
+            var subSectorIds = subSectorsList.map((s: any) => s.id);
+            this.subSectorIds = subSectorIds;
+            var subSubSectors = data.filter((s: any) => subSectorIds.indexOf(s.parentSectorId) != -1);
+            var subSubSectorIds = subSubSectors.map((s: any) => s.id);
+            this.subSubSectorIds = subSubSectorIds;
+          }
+        }
+      );
+    }
+    this.applyFilter();
   }
 
   getLocationsList() {
@@ -512,6 +631,7 @@ export class ProjectsComponent implements OnInit {
       endingYear: (this.model.endingYear) ? parseInt(this.model.endingYear) : 0,
       organizationIds: this.model.selectedOrganizations.map(o => o.id),
       sectorIds: this.model.selectedSectors.map(s => parseInt(s.id)),
+      sectorTypeId: this.selectedSectorTypeId ? this.selectedSectorTypeId : 0,
       locationIds: this.model.selectedLocations.map(l => parseInt(l.id)),
       subLocationIds: this.model.selectedSubLocations.map(l => parseInt(l.id)),
       description: this.model.description,
@@ -619,11 +739,25 @@ export class ProjectsComponent implements OnInit {
     this.isAnyFilterSet = true;
   }
 
-  manageResetDisplay() {
-    if (this.model.selectedProjects.length == 0 && this.model.startingYear == 0 &&
+  noOtherFiltersSet(): boolean {
+    return this.model.selectedProjects.length == 0 && this.model.startingYear == 0 &&
       this.model.endingYear == 0 && this.model.parentSectorId == 0 &&
       this.model.selectedSectors.length == 0 && this.model.selectedOrganizations.length == 0 &&
-      this.model.selectedLocations.length == 0 && !this.model.description) {
+      this.model.selectedLocations.length == 0 && !this.model.description;
+  }
+
+  applyFilter() {
+    this.isAnyFilterSet = true;
+    this.advancedSearchProjects();
+  }
+
+  resetDisplay() {
+    this.isAnyFilterSet = false;
+    this.getProjectsList();
+  }
+
+  manageResetDisplay() {
+    if (this.noOtherFiltersSet()) {
       this.isAnyFilterSet = false;
     } else {
       this.isAnyFilterSet = true;
@@ -657,9 +791,15 @@ export class ProjectsComponent implements OnInit {
     this.model.financialRange = 0;
     this.model.startingYear = 0;
     this.model.endingYear = 0;
+    this.model.sectorLevel = this.sectorLevelCodes.SUPER_SECTORS;
+    this.selectedSectorTypeId = 0;
+    this.updateSectorLevels(0);
+    this.getSectorsList();
     this.filteredSubLocationsList = this.subLocationsList;
     this.model.description = null;
     this.isAnyFilterSet = false;
+    this.resetCounter++;
+    this.getProjectsList();
   }
 
   //Section for viewing project report

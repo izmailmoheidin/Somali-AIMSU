@@ -11,6 +11,7 @@ import { CurrencyService } from 'src/app/services/currency.service';
 import { SectorService } from 'src/app/services/sector.service';
 import { LocationService } from 'src/app/services/location.service';
 import { ProjectService } from 'src/app/services/project.service';
+import { SectorTypeService } from 'src/app/services/sector-types.service';
 
 @Component({
   selector: 'app-all-projects-report',
@@ -28,6 +29,8 @@ export class AllProjectsReportComponent implements OnInit {
   errorMessage: string = null;
   defaultCurrency: string = null;
   btnReportText: string = 'Generate export';
+  sectorTypesList: any = [];
+  selectedSectorTypeId: number = 0;
   model: any = { 
     organizationId: 0, startingYear: 0, endingYear: 0,
     useDefaultCurrency: true,
@@ -58,12 +61,24 @@ export class AllProjectsReportComponent implements OnInit {
   subSectorIds: any = [];
   subSubSectorIds: any = [];
 
+  ndpSectorLevels: any = [
+    { "id": 1, "level": "Parent sectors"},
+    { "id": 2, "level": "Sub sectors"},
+  ];
+
+  ntpSectorLevels: any = [
+    { "id": 0, "level": "Pillars"},
+    { "id": 1, "level": "Chapters"},
+    { "id": 2, "level": "Key Result Areas"},
+  ];
+
   sectorLevels: any = [
     { "id": 1, "level": "Parent sectors"},
     { "id": 2, "level": "Sub sectors"},
   ];
 
   sectorLevelCodes: any = {
+    SUPER_SECTORS: 0,
     SECTORS: 1,
     SUB_SECTORS: 2,
   }
@@ -77,7 +92,8 @@ export class AllProjectsReportComponent implements OnInit {
     private currencyService: CurrencyService,
     private sectorService: SectorService,
     private locationService: LocationService,
-    private projectService: ProjectService) { }
+    private projectService: ProjectService,
+    private sectorTypeService: SectorTypeService) { }
 
   ngOnInit() {
     this.storeService.newReportItem(Settings.dropDownMenus.reports);
@@ -148,6 +164,7 @@ export class AllProjectsReportComponent implements OnInit {
   
     this.getOrganizationsList();
     this.getProjectTitles();
+    this.getSectorTypesList();
     this.getSectorsList();
     this.getLocationsList();
   }
@@ -179,6 +196,58 @@ export class AllProjectsReportComponent implements OnInit {
         }
       }
     );
+  }
+
+  getSectorTypesList() {
+    this.sectorTypeService.getSectorTypesList().subscribe(
+      data => {
+        if (data) {
+          this.sectorTypesList = data;
+          var defaultType = data.filter((t: any) => t.isPrimary == true);
+          if (defaultType.length > 0) {
+            this.selectedSectorTypeId = defaultType[0].id;
+            this.updateSectorLevels(this.selectedSectorTypeId);
+          }
+        }
+      }
+    );
+  }
+
+  updateSectorLevels(sectorTypeId: number) {
+    var selectedType = this.sectorTypesList.filter((t: any) => t.id == sectorTypeId);
+    var typeName = selectedType.length > 0 ? selectedType[0].typeName : '';
+    if (typeName.toLowerCase().indexOf('ntp') != -1) {
+      this.sectorLevels = this.ntpSectorLevels;
+    } else {
+      this.sectorLevels = this.ndpSectorLevels;
+    }
+  }
+
+  onSectorTypeChange() {
+    this.model.selectedSectors = [];
+    this.model.sectorLevel = this.sectorLevelCodes.SUPER_SECTORS;
+    this.updateSectorLevels(this.selectedSectorTypeId);
+    this.sectorsList = [];
+    this.allSectorsList = [];
+    this.subSectorIds = [];
+    this.subSubSectorIds = [];
+    if (!this.selectedSectorTypeId) {
+      this.getSectorsList();
+    } else {
+      this.sectorService.getSectorsForType(this.selectedSectorTypeId.toString()).subscribe(
+        data => {
+          if (data) {
+            this.allSectorsList = data;
+            this.sectorsList = data.filter((s: any) => s.parentSectorId == 0);
+            this.sectorIds = this.sectorsList.map((s: any) => s.id);
+            var subSectorsList = data.filter((s: any) => this.sectorIds.indexOf(s.parentSectorId) != -1);
+            this.subSectorIds = subSectorsList.map((s: any) => s.id);
+            var subSubSectors = data.filter((s: any) => this.subSectorIds.indexOf(s.parentSectorId) != -1);
+            this.subSubSectorIds = subSubSectors.map((s: any) => s.id);
+          }
+        }
+      );
+    }
   }
 
   getSectorsList() {
@@ -239,15 +308,19 @@ export class AllProjectsReportComponent implements OnInit {
   }
 
   manageSectorLevel() {
-    if (this.model.sectorLevel) {
+    if (this.model.sectorLevel != null) {
       var level = parseInt(this.model.sectorLevel);
       switch(level) {
-        case this.sectorLevelCodes.SECTORS:
+        case this.sectorLevelCodes.SUPER_SECTORS:
             this.sectorsList = this.allSectorsList.filter(s => s.parentSectorId == 0);
           break;
         
-        case this.sectorLevelCodes.SUB_SECTORS:
+        case this.sectorLevelCodes.SECTORS:
             this.sectorsList = this.allSectorsList.filter(s => this.subSectorIds.indexOf(s.id) != -1);
+          break;
+        
+        case this.sectorLevelCodes.SUB_SECTORS:
+            this.sectorsList = this.allSectorsList.filter(s => this.subSubSectorIds.indexOf(s.id) != -1);
           break;
 
         default:
@@ -348,6 +421,18 @@ export class AllProjectsReportComponent implements OnInit {
     this.filterSubLocations();
   }
 
+  resetCounter: number = 0;
+
+  onCascadingLocationSelected(locationId: number) {
+    if (locationId != 0) {
+      this.model.selectedLocations = [{ id: locationId }];
+    } else {
+      this.model.selectedLocations = [];
+    }
+    this.model.selectedSubLocations = [];
+    this.setFilter();
+  }
+
   onSubLocationSelect(item: any) {
     this.setFilter();
   }
@@ -408,7 +493,8 @@ export class AllProjectsReportComponent implements OnInit {
       lowerRange: lowerRange ? parseFloat(lowerRange) : 0,
       upperRange: upperRange ? parseFloat(upperRange) : 0,
       sectorLevel: this.model.sectorLevel,
-      isExportGroupedData: this.model.isExportGroupedData
+      isExportGroupedData: this.model.isExportGroupedData,
+      sectorTypeId: this.selectedSectorTypeId
     };
     console.log('search model', searchModel)
     this.blockUI.start('Loading report...');
@@ -541,6 +627,7 @@ export class AllProjectsReportComponent implements OnInit {
     this.filteredSubLocationsList = this.subLocationsList;
     this.sectorsList = this.allSectorsList.filter(s => s.parentSectorId == 0);
     this.isAnyFilterSet = false;
+    this.resetCounter++;
   }
 
 }

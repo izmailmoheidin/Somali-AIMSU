@@ -47,6 +47,17 @@ export class HomeComponent implements OnInit {
   videoOneUrl!: SafeResourceUrl;
   videoTwoUrl!: SafeResourceUrl;
   permissions: any = {};
+  stateLinks: any[] = [
+    { id: 2, name: 'FGS', color: '#0b2545' },
+    { id: 3, name: 'BRA', color: '#4189dd' },
+    { id: 4, name: 'Galmudug', color: '#16a34a' },
+    { id: 5, name: 'Hirshabelle', color: '#ea580c' },
+    { id: 6, name: 'Jubaland', color: '#7c3aed' },
+    { id: 7, name: 'Puntland', color: '#0891b2' },
+    { id: 8, name: 'South West', color: '#db2777' },
+    { id: 9, name: 'Somaliland', color: '#ca8a04' },
+    { id: 14, name: 'North East', color: '#dc2626' }
+  ];
   
   constructor(private storeService: StoreService, private route: ActivatedRoute,
     private userService: UserService, private organizationService: OrganizationService,

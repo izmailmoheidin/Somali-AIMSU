@@ -48,6 +48,14 @@
               </div>
               <div class="row margin-top-10">
                 <div class="col-lg-3 col-md-3">
+                  <select class="form-control" id="sectorType" [(ngModel)]="selectedSectorTypeId" name="sectorType"
+                    title="Sector type" #sectorType="ngModel" (change)="onSectorTypeChange()">
+                    <option value="0">--Sector type--</option>
+                    <option *ngFor="let type of sectorTypesList" [value]="type.id">{{type.typeName}}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-lg-3 col-md-3">
                   <select class="form-control" id="sectorLevel" [(ngModel)]="model.sectorLevel" name="sectorLevel"
                     title="Sector level" #sectorLevel="ngModel" required
                     (change)="manageSectorLevel();onChangeParentSector();">
@@ -81,25 +89,11 @@
               <div class="row margin-top-10">
 
                 <div class="col-lg-3 col-md-3">
-                  <select class="form-control" title="Location" (change)="changeLocation();" id="selectedLocation"
-                    [(ngModel)]="model.locationId" name="selectedLocation" #selectedLocation="ngModel">
-                    <option value="0">--All location/s--</option>
-                    <option *ngFor="let location of locationsList" value="{{location.id}}">
-                      {{location.location}}
-                    </option>
-                  </select>
+                  <app-cascading-location-picker [showLabels]="false" (locationSelected)="onCascadingLocationSelected($event)" [resetTrigger]="resetCounter"></app-cascading-location-picker>
                 </div>
 
                 <div class="col-lg-3 col-md-3">
-                  <ng-multiselect-dropdown [placeholder]="'-- All sub-location/s --'" title="Location/s"
-                    [settings]="subLocationsSettings"
-                    [data]="filteredSubLocationsList" [(ngModel)]="model.selectedSubLocations" 
-                    name="selectedSubLocations" (onSelect)="onSubLocationSelect($event)"
-                    (onDeSelect)="onSubLocationDeSelect($event)" (onSelectAll)="onSubLocationSelectAll($event)"
-                    (onDeSelectAll)="onSubLocationDeSelectAll($event)"
-                    #selectedSubLocations="ngModel">
-                  </ng-multiselect-dropdown>
-              </div>
+                </div>
 
                 <div class="col-lg-3 col-md-3">
                   <select class="form-control" id="markerId" [(ngModel)]="model.markerId" name="markerId"

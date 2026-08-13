@@ -424,6 +424,18 @@ export class LeafletMapComponent implements AfterViewInit, OnInit, OnDestroy {
     this.filterSubLocations();
   }
 
+  resetCounter: number = 0;
+
+  onCascadingLocationSelected(locationId: number) {
+    if (locationId != 0) {
+      this.model.selectedLocations = [{ id: locationId }];
+    } else {
+      this.model.selectedLocations = [];
+    }
+    this.model.selectedSubLocations = [];
+    this.setFilter();
+  }
+
   onSubLocationSelect(item: any) {
     this.setFilter();
   }
@@ -849,6 +861,7 @@ export class LeafletMapComponent implements AfterViewInit, OnInit, OnDestroy {
     this.filteredSubLocationsList = this.subLocationsList;
     this.model.description = null;
     this.isAnyFilterSet = false;
+    this.resetCounter++;
 
     // Clear the data - user needs to click "Search Projects" to fetch
 

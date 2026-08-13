@@ -194,13 +194,7 @@
 
                 <div class="col-lg-4 col-md-4">
                   <div class="col margin-top-5">
-                    <ng-multiselect-dropdown [placeholder]="'-- All location/s --'" 
-                      [settings]="locationsSettings"
-                      [data]="locationsList"
-                      [(ngModel)]="model.selectedLocations" name="selectedLocations"
-                      (onSelect)="onItemSelect()" (onDeSelect)="onItemDeSelect()" (onSelectAll)="onItemSelectAll()"
-                      (onDeSelectAll)="onItemDeSelectAll()" #selectedLocations="ngModel">
-                    </ng-multiselect-dropdown>
+                    <app-cascading-location-picker [showLabels]="false" (locationSelected)="onCascadingLocationSelected($event)" [resetTrigger]="resetCounter"></app-cascading-location-picker>
                   </div>
 
                   <!--<div class="col margin-top-5">

@@ -24,6 +24,7 @@ export class AppComponent {
   currentUrl: string = null;
   isHomeActive: boolean = false;
   isProjectsActive: boolean = false;
+  isMyOrgActive: boolean = false;
   isReportActive: boolean = false;
   isManagementActive: boolean = false;
   isEntryActive: boolean = false;
@@ -32,6 +33,17 @@ export class AppComponent {
   isNotificationsActive: boolean = false;
   isBackupActive: boolean = false;
   menuConstants: any = Settings.dropDownMenusConstants;
+  stateLinks: any[] = [
+    { id: 2, name: 'FGS', color: '#0b2545' },
+    { id: 3, name: 'BRA', color: '#4189dd' },
+    { id: 4, name: 'Galmudug', color: '#16a34a' },
+    { id: 5, name: 'Hirshabelle', color: '#ea580c' },
+    { id: 6, name: 'Jubaland', color: '#7c3aed' },
+    { id: 7, name: 'Puntland', color: '#0891b2' },
+    { id: 8, name: 'South West', color: '#db2777' },
+    { id: 9, name: 'Somaliland', color: '#ca8a04' },
+    { id: 14, name: 'North East', color: '#dc2626' }
+  ];
 
   constructor(private securityService: SecurityHelperService, private router: Router,
     private notificationService: NotificationService, private homePageService: HomePageService,
@@ -62,6 +74,7 @@ export class AppComponent {
         this.isHomeActive = false;
         this.isManagementActive = false;
         this.isProjectsActive = false;
+        this.isMyOrgActive = false;
         this.isEntryActive = false;
         this.isReportActive = false;
         this.isNotificationsActive = false;
@@ -80,6 +93,12 @@ export class AppComponent {
         case this.menuConstants.PROJECTS:
           setTimeout(() => {
             this.isProjectsActive = true;
+          }, 1000);
+          break;
+
+        case this.menuConstants.MY_ORGANIZATION:
+          setTimeout(() => {
+            this.isMyOrgActive = true;
           }, 1000);
           break;
 

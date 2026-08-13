@@ -1,29 +1,22 @@
-<div class="container-fluid view-area">
+<div class="container-fluid view-area pe-page">
   <block-ui>
-    <div class="row">
-      <div class="col-md-12">
-        <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a href="#" class="nav-link" [class.active]="activeTab === 'superParent'"
-              (click)="setActiveTab('superParent'); $event.preventDefault()">Super Parent</a>
-          </li>
-          <li class="nav-item">
-            <a href="#" class="nav-link" [class.active]="activeTab === 'parent'"
-              (click)="setActiveTab('parent'); $event.preventDefault()">Parent Sector</a>
-          </li>
-          <li class="nav-item">
-            <a href="#" class="nav-link" [class.active]="activeTab === 'child'"
-              (click)="setActiveTab('child'); $event.preventDefault()">Child Sector</a>
-          </li>
-          <li *ngIf="isForEdit" class="nav-item">
-            <a href="#" class="nav-link" [class.active]="activeTab === 'edit'"
-              (click)="setActiveTab('edit'); $event.preventDefault()">Edit Sector</a>
-          </li>
-          <li class="nav-item ml-auto">
-            <a class="nav-link text-info" [routerLink]="['/sectors']">Sectors List</a>
-          </li>
-        </ul>
+    <div class="pe-header">
+      <div class="pe-header-left">
+        <h1 class="pe-title">Manage Sector Hierarchy</h1>
+        <span class="pe-subtitle">Create and edit sectors across all hierarchy levels</span>
       </div>
+    </div>
+
+    <div class="pe-tabs">
+      <a href="#" class="pe-tab" [class.active]="activeTab === 'superParent'"
+        (click)="setActiveTab('superParent'); $event.preventDefault()">Top Level</a>
+      <a href="#" class="pe-tab" [class.active]="activeTab === 'parent'"
+        (click)="setActiveTab('parent'); $event.preventDefault()">Mid Level</a>
+      <a href="#" class="pe-tab" [class.active]="activeTab === 'child'"
+        (click)="setActiveTab('child'); $event.preventDefault()">Detail Level</a>
+      <a *ngIf="isForEdit" href="#" class="pe-tab" [class.active]="activeTab === 'edit'"
+        (click)="setActiveTab('edit'); $event.preventDefault()">Edit Sector</a>
+      <a class="pe-tab" style="margin-left: auto;" [routerLink]="['/sectors']">Sectors List</a>
     </div>
 
     <div class="row text-center" *ngIf="isLoading">
@@ -40,16 +33,24 @@
         </div>
       </div>
 
+      <div *ngIf="showSuccess" class="col-md-12">
+        <div class="alert alert-success alert-dismissible" style="font-size: 0.9rem; padding: 12px 18px;">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>Success!</strong> {{successMessage}} Redirecting to sectors list...
+        </div>
+      </div>
+
       <div *ngIf="activeTab === 'superParent'" class="col-md-6 offset-md-3">
         <div class="card card-signin my-5">
           <div class="card-body">
-            <h5 class="card-title text-center">Create Super Parent Sector</h5>
+            <h5 class="card-title text-center">Create Top-Level Sector (Pillar)</h5>
+            <p class="text-muted text-center mb-3" style="font-size: 0.82rem;">Creates a Pillar — the highest level in the hierarchy. Applies to both NDP and NTP.</p>
             <form class="form-signin" (ngSubmit)="saveSuperParent()" #superParentForm="ngForm">
               <div class="form-group">
                 <label for="superParentTypeId">Sector Type</label>
                 <select class="form-control" id="superParentTypeId" name="superParentTypeId"
                   [(ngModel)]="superParentModel.sectorTypeId"
-                  (change)="filterSuperParentOptions(superParentModel.sectorTypeId)">
+                  (change)="onSectorTypeChange($event.target.value)">
                   <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
                 </select>
               </div>
@@ -64,7 +65,7 @@
               </div>
 
               <button [disabled]="isBtnDisabled" class="btn btn-lg btn-info btn-block text-uppercase"
-                type="submit">Save Super Parent</button>
+                type="submit">Save Top-Level Sector</button>
             </form>
           </div>
         </div>
@@ -73,28 +74,29 @@
       <div *ngIf="activeTab === 'parent'" class="col-md-6 offset-md-3">
         <div class="card card-signin my-5">
           <div class="card-body">
-            <h5 class="card-title text-center">Create Parent Sector</h5>
+            <h5 class="card-title text-center">Create Mid-Level Sector (Sector / Chapter)</h5>
+            <p class="text-muted text-center mb-3" style="font-size: 0.82rem;">Creates a mid-level sector under a Pillar. Called 'Sector' in NDP and 'Chapter' in NTP.</p>
             <form class="form-signin" (ngSubmit)="saveParentSector()" #parentSectorForm="ngForm">
               <div class="form-group">
                 <label for="parentSectorTypeId">Sector Type</label>
                 <select class="form-control" id="parentSectorTypeId" name="parentSectorTypeId"
                   [(ngModel)]="parentSectorModel.sectorTypeId"
-                  (change)="filterSuperParentOptions(parentSectorModel.sectorTypeId)">
+                  (change)="onSectorTypeChange($event.target.value)">
                   <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label for="parentSuperParentId">Select Super Parent</label>
+                <label for="parentSuperParentId">Select Pillar</label>
                 <select class="form-control" id="parentSuperParentId" name="parentSuperParentId"
                   [(ngModel)]="parentSectorModel.parentId" #parentSuperParentId="ngModel" required>
                   <option *ngFor="let sector of superParents" [value]="sector.id">{{sector.sectorName}}</option>
                 </select>
                 <div *ngIf="parentSectorForm.submitted && !parentSuperParentId.valid" class="alert alert-danger">
-                  Super Parent is required
+                  Pillar is required
                 </div>
                 <div *ngIf="superParents.length === 0" class="text-info mt-2">
-                  <i>No super parent sectors available for the selected type.</i>
+                  <i>No pillar sectors available for the selected type.</i>
                 </div>
               </div>
 
@@ -108,7 +110,7 @@
               </div>
 
               <button [disabled]="isBtnDisabled || superParents.length === 0" class="btn btn-lg btn-info btn-block text-uppercase"
-                type="submit">Save Parent Sector</button>
+                type="submit">Save Mid-Level Sector</button>
             </form>
           </div>
         </div>
@@ -117,28 +119,29 @@
       <div *ngIf="activeTab === 'child'" class="col-md-6 offset-md-3">
         <div class="card card-signin my-5">
           <div class="card-body">
-            <h5 class="card-title text-center">Create Child Sector</h5>
+            <h5 class="card-title text-center">Create Detail-Level Sector (Sub-sector / Sub-chapter)</h5>
+            <p class="text-muted text-center mb-3" style="font-size: 0.82rem;">Creates a detail-level sector under a mid-level sector. Called 'Sub-sector' in NDP and 'Sub-chapter' in NTP.</p>
             <form class="form-signin" (ngSubmit)="saveChildSector()" #childSectorForm="ngForm">
               <div class="form-group">
                 <label for="childSectorTypeId">Sector Type</label>
                 <select class="form-control" id="childSectorTypeId" name="childSectorTypeId"
                   [(ngModel)]="childSectorModel.sectorTypeId"
-                  (change)="filterParentOptions(childSectorModel.sectorTypeId)">
+                  (change)="onSectorTypeChange($event.target.value)">
                   <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label for="childParentId">Select Parent</label>
+                <label for="childParentId">Select Sector / Chapter</label>
                 <select class="form-control" id="childParentId" name="childParentId"
                   [(ngModel)]="childSectorModel.parentId" #childParentId="ngModel" required>
                   <option *ngFor="let sector of parentSectors" [value]="sector.id">{{sector.sectorName}}</option>
                 </select>
                 <div *ngIf="childSectorForm.submitted && !childParentId.valid" class="alert alert-danger">
-                  Parent is required
+                  Sector / Chapter is required
                 </div>
                 <div *ngIf="parentSectors.length === 0" class="text-info mt-2">
-                  <i>No parent sectors available for the selected type.</i>
+                  <i>No mid-level sectors available for the selected type.</i>
                 </div>
               </div>
 
@@ -152,7 +155,7 @@
               </div>
 
               <button [disabled]="isBtnDisabled || parentSectors.length === 0" class="btn btn-lg btn-info btn-block text-uppercase"
-                type="submit">Save Child Sector</button>
+                type="submit">Save Detail-Level Sector</button>
             </form>
           </div>
         </div>
@@ -169,7 +172,7 @@
                   <div class="form-group">
                     <label for="sectorTypeId">Sector Type</label>
                     <select class="form-control" id="sectorTypeId" [(ngModel)]="model.sectorTypeId" name="sectorTypeId"
-                      #sectorTypeId="ngModel" (change)="filterParentSectors()">
+                      #sectorTypeId="ngModel" (change)="onSectorTypeChange($event.target.value); filterEditParentSectors()">
                       <option *ngFor="let sectorType of sectorTypes" [value]="sectorType.id">{{sectorType.typeName}}</option>
                     </select>
                   </div>

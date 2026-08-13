@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { Settings } from 'src/app/config/settings';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { ProjectService } from 'src/app/services/project.service';
@@ -17,12 +17,13 @@ import { ModalService } from 'src/app/services/modal.service';
   templateUrl: './basic-data.component.html',
   styleUrls: ['./basic-data.component.css']
 })
-export class BasicDataComponent implements OnInit {
+export class BasicDataComponent implements OnInit, OnDestroy {
   resourceTempId: number = 0;
   isProjectBtnDisabled: boolean = false;
   isSourceVisible: boolean = false;
   isFunderDataAvailable: boolean = false;
   isImplementerDataAvailable: boolean = false;
+  hasUnsavedImplementers: boolean = false;
   fundersSettings: any = [];
   implementersSettings: any = [];
   newDocuments: any = [];
@@ -162,6 +163,8 @@ export class BasicDataComponent implements OnInit {
   viewProjectTransactions: any = [];
   viewProjectMarkers: any = [];
 
+  asyncSaveCount: number = 0;
+
   @BlockUI() blockUI: NgBlockUI;
   constructor(private projectService: ProjectService, private errorModal: ErrorModalComponent,
     private storeService: StoreService, private projectInfoModal: ProjectInfoModalComponent,
@@ -189,6 +192,12 @@ export class BasicDataComponent implements OnInit {
           id : f.funderId,
           organizationName: f.funder
         });
+      });
+    } else if (this.userOrgId) {
+      var userOrgName = this.securityService.getUserOrganization();
+      this.funderModel.selectedFunders.push({
+        id: this.userOrgId,
+        organizationName: userOrgName
       });
     }
 
@@ -226,6 +235,12 @@ export class BasicDataComponent implements OnInit {
       this.calculateDisbursements();
     }
     
+  }
+
+  ngOnDestroy() {
+    if (this.hasUnsavedImplementers && this.projectId) {
+      this.saveProjectImplementers();
+    }
   }
 
   ngOnChanges() {
@@ -442,6 +457,18 @@ export class BasicDataComponent implements OnInit {
     this.projectData.startingFinancialYear = startingYear;
     this.projectData.endingFinancialYear = endingYear;
 
+    if (this.funderModel.selectedFunders.length == 0) {
+      this.errorMessage = 'At least one funder is required';
+      this.errorModal.openModal();
+      return false;
+    }
+
+    if (this.implementerModel.selectedImplementers.length == 0) {
+      this.errorMessage = 'At least one implementer is required';
+      this.errorModal.openModal();
+      return false;
+    }
+
     if (startingYear > endingYear) {
       this.errorMessage = 'Starting year cannot be greater than ending year';
       this.errorModal.openModal();
@@ -493,10 +520,19 @@ export class BasicDataComponent implements OnInit {
       this.requestNo = this.storeService.getCurrentRequestId();
       this.projectService.updateProject(this.projectId, this.projectData).subscribe(
         data => {
+          if (data && data.success === false) {
+            this.blockUI.stop();
+            this.errorMessage = data.message || 'Validation error occurred while saving project';
+            this.errorModal.openModal();
+            this.isProjectBtnDisabled = false;
+            return;
+          }
           if (data) {
             this.previousStartingYear = new Date(this.projectData.startDate).getFullYear();
             this.previousEndingYear = new Date(this.projectData.endDate).getFullYear();
+            this.asyncSaveCount = 3;
             this.saveProjectFunders();
+            this.saveProjectImplementers();
             this.adjustProjectDisbursements();
             this.updateProjectIdToParent();
             this.calculateDisbursements();
@@ -510,6 +546,13 @@ export class BasicDataComponent implements OnInit {
       this.requestNo = this.storeService.getCurrentRequestId();
       this.projectService.addProject(this.projectData).subscribe(
         data => {
+          if (data && data.success === false) {
+            this.blockUI.stop();
+            this.errorMessage = data.message || 'Validation error occurred while saving project';
+            this.errorModal.openModal();
+            this.isProjectBtnDisabled = false;
+            return;
+          }
           if (data) {
             this.previousStartingYear = new Date(this.projectData.startDate).getFullYear();
             this.previousEndingYear = new Date(this.projectData.endDate).getFullYear();
@@ -518,6 +561,7 @@ export class BasicDataComponent implements OnInit {
             this.updateProjectIdToParent();
             this.createProjectDisbursements();
             this.saveProjectFunders();
+            this.saveProjectImplementers();
             this.calculateDisbursements();
           } else {
             this.blockUI.stop();
@@ -562,12 +606,23 @@ export class BasicDataComponent implements OnInit {
           this.updateFundersToParent();
           // Emit selected funders for funding component
           this.selectedFundersChanged.emit(this.funderModel.selectedFunders);
-          this.saveProjectImplementers();
+          this.saveProjectDocuments();
         } else {
-          this.blockUI.stop();
+          this.decrementAsyncSaveCount();
         }
       }
     );
+  }
+
+  decrementAsyncSaveCount() {
+    if (this.asyncSaveCount > 0) {
+      this.asyncSaveCount--;
+      if (this.asyncSaveCount === 0) {
+        this.blockUI.stop();
+      }
+    } else {
+      this.blockUI.stop();
+    }
   }
 
   saveProjectFundersFromSource() {
@@ -636,10 +691,9 @@ export class BasicDataComponent implements OnInit {
             });
           });
           this.updateImplementersToParent();
-          this.saveProjectDocuments();
-        } else {
-          this.blockUI.stop();
+          this.hasUnsavedImplementers = false;
         }
+        this.decrementAsyncSaveCount();
       }
     );
   }
@@ -667,6 +721,7 @@ export class BasicDataComponent implements OnInit {
           this.updateDisbursementsToParent(data);
           this.calculateDisbursements();
         }
+        this.decrementAsyncSaveCount();
       }
     );
   }
@@ -740,12 +795,12 @@ export class BasicDataComponent implements OnInit {
           if (data) {
             this.getProjectDocuments();
           } else {
-            this.blockUI.stop();
+            this.decrementAsyncSaveCount();
           }
         }
       );
     } else {
-      this.blockUI.stop();
+      this.decrementAsyncSaveCount();
     }
   }
 
@@ -832,11 +887,21 @@ export class BasicDataComponent implements OnInit {
 
     this.implementerModel.newImplementer = [];
     this.implementerModel.newFundsPercentage = 0;
+    this.hasUnsavedImplementers = true;
+    // Save immediately to backend if project already exists
+    if (this.projectId && this.projectId != 0) {
+      this.saveProjectImplementers();
+    }
   }
 
   removeImplementer(id: number) {
     if (id) {
       this.implementerModel.selectedImplementers = this.implementerModel.selectedImplementers.filter(i => i.id != id);
+      this.hasUnsavedImplementers = true;
+      // Save immediately to backend if project already exists
+      if (this.projectId && this.projectId != 0) {
+        this.saveProjectImplementers();
+      }
     }
   }
 
@@ -847,15 +912,18 @@ export class BasicDataComponent implements OnInit {
   }
 
   getProjectDocuments() {
+    if (this.projectId) {
+      this.requestNo = this.storeService.getCurrentRequestId();
       this.projectService.getProjectDocuments(this.projectId.toString()).subscribe(
         data => {
           if (data) {
             this.projectDocuments = data;
             this.updateDocumentsToParent();
           }
-          this.blockUI.stop();
+          this.decrementAsyncSaveCount();
         }
       );
+    }
   }
 
   deleteResource(id) {
@@ -1014,7 +1082,7 @@ export class BasicDataComponent implements OnInit {
     var selectedProject = this.iatiProjects.filter(p => p.id == id);
     if (selectedProject && selectedProject.length > 0) {
       var sDate = new Date(selectedProject[0].startDate);
-      var sDateStr = (sDate.getMonth() + 1) + '/' + sDate.getDate() + '/' + sDate.getFullYear();
+      var sDateStr = sDate.getDate() + '/' + (sDate.getMonth() + 1) + '/' + sDate.getFullYear();
       this.projectData.startDate = this.formatDateToYMD(sDateStr);
     }
   }
@@ -1024,7 +1092,7 @@ export class BasicDataComponent implements OnInit {
     var selectedProject = this.iatiProjects.filter(p => p.id == id);
     if (selectedProject && selectedProject.length > 0) {
       var eDate = new Date(selectedProject[0].endDate);
-      var eDateStr = ((eDate.getMonth() + 1) + '/' + eDate.getDate() + '/' + eDate.getFullYear());
+      var eDateStr = (eDate.getDate() + '/' + (eDate.getMonth() + 1) + '/' + eDate.getFullYear());
       this.projectData.endDate = this.formatDateToYMD(eDateStr);
     }
   }

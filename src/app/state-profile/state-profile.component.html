@@ -1,0 +1,214 @@
+<div class="container-fluid view-area">
+  <block-ui>
+
+  <!-- State header -->
+  <div class="state-profile-header">
+    <div class="state-profile-header-left">
+      <h4 class="state-profile-title">{{stateName || 'State Profile'}}</h4>
+      <div class="state-profile-subtitle">Aid activity profile</div>
+    </div>
+    <div class="state-profile-header-right">
+      <a href="/home" class="btn btn-outline-secondary btn-sm">Back to home</a>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="row ops-stat-row" *ngIf="!isLoading">
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card">
+        <div class="ops-stat-icon"><i class="fa fa-project-diagram"></i></div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Total projects</div>
+          <div class="ops-stat-value">{{totalProjects}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card">
+        <div class="ops-stat-icon"><i class="fa fa-dollar-sign"></i></div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Total funding</div>
+          <div class="ops-stat-value">{{defaultCurrencyCode}} {{abbreviateAmount(totalFunding)}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card">
+        <div class="ops-stat-icon"><i class="fa fa-hand-holding-usd"></i></div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Unique funders</div>
+          <div class="ops-stat-value">{{uniqueFunders}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card">
+        <div class="ops-stat-icon"><i class="fa fa-people-carry-box"></i></div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Unique implementers</div>
+          <div class="ops-stat-value">{{uniqueImplementers}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="row text-center" *ngIf="isLoading">
+    <div class="col-md-12">
+      <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading state profile...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading">
+
+    <!-- Map + Sector chart -->
+    <div class="row ops-main-row">
+      <div class="col-lg-7 col-md-12 ops-main-col">
+        <div class="ops-panel ops-panel-map">
+          <div class="ops-panel-header">
+            <h6 class="ops-panel-title">{{stateName}} — location map</h6>
+          </div>
+          <div class="ops-panel-body ops-panel-body-flush ops-map-body">
+            <div #stateMap class="ops-map ops-map-mini"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5 col-md-12 ops-main-col">
+        <div class="ops-panel ops-panel-chart">
+          <div class="ops-panel-header">
+            <h6 class="ops-panel-title">Funding by sector in {{stateName}}</h6>
+            <div class="ops-chart-filter">
+              <select class="ops-chart-filter-select" [(ngModel)]="selectedSectorTypeId" (ngModelChange)="onSectorTypeChange()">
+                <option *ngFor="let type of sectorTypesList" [ngValue]="type.id">{{type.typeName}}</option>
+              </select>
+            </div>
+          </div>
+          <div class="ops-panel-body">
+            <div class="ops-chart-holder" *ngIf="sectorChartData.labels.length > 0">
+              <canvas baseChart [type]="sectorChartType" [data]="sectorChartData" [options]="sectorChartOptions"></canvas>
+            </div>
+            <div class="ops-empty-state" *ngIf="sectorChartData.labels.length === 0">
+              No sector data available for this state.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project list -->
+    <div class="row ops-charts-row">
+      <div class="col-lg-12">
+        <div class="ops-panel">
+          <div class="ops-panel-header">
+            <h6 class="ops-panel-title">Projects in {{stateName}}</h6>
+          </div>
+          <div class="ops-panel-body ops-panel-body-flush">
+            <div *ngIf="projectsList.length > 0">
+              <table class="table table-bordered table-striped">
+                <thead>
+                  <tr>
+                    <th>Project title</th>
+                    <th>Funders</th>
+                    <th>Implementers</th>
+                    <th class="text-right">Value ({{defaultCurrencyCode}})</th>
+                    <th>Years</th>
+                    <th class="text-center" style="width: 80px;">Detail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let project of projectsList | paginate: { itemsPerPage: pagingSize, currentPage: p, id: 'sp' }">
+                    <td>
+                      <a class="text-info cursor-pointer" (click)="viewProject(project.projectId || project.id)">{{project.title}}</a>
+                    </td>
+                    <td class="state-cell-funders">{{project.funders}}</td>
+                    <td class="state-cell-implementers">{{project.implementers}}</td>
+                    <td class="text-right">{{formatNumber(project.projectValue)}}</td>
+                    <td>{{project.startingFinancialYear}} - {{project.endingFinancialYear}}</td>
+                    <td class="text-center">
+                      <button class="btn btn-outline-primary btn-sm" (click)="viewProject(project.projectId || project.id)">View</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <pagination-controls (pageChange)="p = $event" id="sp"></pagination-controls>
+            </div>
+            <div class="ops-empty-state" *ngIf="projectsList.length === 0">
+              No projects found in {{stateName}}.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top funders + Top implementers -->
+    <div class="row ops-charts-row">
+      <div class="col-lg-6 col-md-12">
+        <div class="ops-panel">
+          <div class="ops-panel-header">
+            <h6 class="ops-panel-title">Top funders in {{stateName}}</h6>
+          </div>
+          <div class="ops-panel-body ops-panel-body-flush">
+            <table class="table table-bordered table-striped" *ngIf="topFunders.length > 0">
+              <thead>
+                <tr>
+                  <th>Organization</th>
+                  <th class="text-right">Projects</th>
+                  <th class="text-right">Funding ({{defaultCurrencyCode}})</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let f of topFunders">
+                  <td>{{f.organizationName}}</td>
+                  <td class="text-right">{{f.projects.length}}</td>
+                  <td class="text-right">{{formatNumber(f.totalFunding)}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="ops-empty-state" *ngIf="topFunders.length === 0">
+              No funder data available.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-md-12">
+        <div class="ops-panel">
+          <div class="ops-panel-header">
+            <h6 class="ops-panel-title">Top implementers in {{stateName}}</h6>
+          </div>
+          <div class="ops-panel-body ops-panel-body-flush">
+            <table class="table table-bordered table-striped" *ngIf="topImplementers.length > 0">
+              <thead>
+                <tr>
+                  <th>Organization</th>
+                  <th class="text-right">Projects</th>
+                  <th class="text-right">Est. value ({{defaultCurrencyCode}})</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let i of topImplementers">
+                  <td>{{i.name}}</td>
+                  <td class="text-right">{{i.count}}</td>
+                  <td class="text-right">{{formatNumber(i.funding)}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="ops-empty-state" *ngIf="topImplementers.length === 0">
+              No implementer data available.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Funding disclaimer -->
+    <div class="ops-funding-note">
+      <i class="fa fa-info-circle"></i>
+      Funding figures are estimated by dividing project value equally among all funders when a project has multiple donors, since exact per-donor contribution amounts are not tracked in the system. Implementer values are approximate and based on total project value.
+    </div>
+
+  </div>
+
+  </block-ui>
+</div>

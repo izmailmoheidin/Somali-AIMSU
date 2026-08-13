@@ -18,7 +18,8 @@ export const Settings = {
         contact: 6,
         help: 7,
         notifications: 8,
-        backup: 9
+        backup: 9,
+        myOrganization: 10
     },
     dropDownMenusConstants: {
         HOME: 1,
@@ -29,7 +30,8 @@ export const Settings = {
         CONTACT: 6,
         HELP: 7,
         NOTIFICATIONS: 8,
-        BACKUP: 9
+        BACKUP: 9,
+        MY_ORGANIZATION: 10
     },
     pdfPrintPageHeight: 1550,
     pdfPrintPageHeightLandscape: 1250,
@@ -157,7 +159,7 @@ export const Settings = {
             canEditHelp: true,
             canTakeBackup: true,
             canEditDocument: true,
-            canEditContactMessages: false,
+            canEditContactMessages: true,
             canEditSponsors: true
         },
         guest: {

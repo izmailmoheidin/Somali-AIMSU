@@ -17,6 +17,7 @@ export class SectorMappingsComponent implements OnInit {
   errorMessage: string = null;
   requestNo: number = 0;
   defaultSectors: any = [];
+  groupedDefaultSectors: any = [];
   sectorTypes: any = [];
   sectorsList: any = [];
   defaultSectorTypeId: number = 0;
@@ -35,6 +36,8 @@ export class SectorMappingsComponent implements OnInit {
   otherCriteria: string = null;
   showUnmappedOnly: boolean = false;
   unMappedText: string = 'Show only un-mapped';
+  showSuccess: boolean = false;
+  successMessage: string = '';
   model: any = { selectedSectorId: null, sectorTypeId: null };
   @BlockUI() blockUI: NgBlockUI;
   
@@ -78,11 +81,28 @@ export class SectorMappingsComponent implements OnInit {
           this.sectorsList = data;
           if (this.defaultSectorTypeId) {
             this.defaultSectors = this.sectorsList.filter(s => s.sectorTypeId == this.defaultSectorTypeId && s.parentSector != null);
+            this.buildGroupedDefaultSectors();
           }
         }
         this.isLoading = false;
       }
     );
+  }
+
+  buildGroupedDefaultSectors() {
+    const roots = this.sectorsList.filter(s => s.sectorTypeId == this.defaultSectorTypeId && (!s.parentSectorId || s.parentSectorId == 0));
+    const groups: any[] = [];
+    roots.forEach(root => {
+      const children = this.defaultSectors.filter(s => s.parentSectorId == root.id);
+      if (children.length > 0) {
+        groups.push({ label: root.sectorName, options: children });
+      }
+    });
+    const ungrouped = this.defaultSectors.filter(s => !roots.some(r => r.id == s.parentSectorId));
+    if (ungrouped.length > 0) {
+      groups.push({ label: 'Other', options: ungrouped });
+    }
+    this.groupedDefaultSectors = groups;
   }
 
   getAllSectorsMappings() {
@@ -157,6 +177,9 @@ export class SectorMappingsComponent implements OnInit {
             this.allSectorMappings.push(mappingModel);
           }
           this.blockUI.stop();
+          this.successMessage = 'Sector mapping updated successfully.';
+          this.showSuccess = true;
+          setTimeout(() => { this.showSuccess = false; }, 3000);
         }
       );
     }

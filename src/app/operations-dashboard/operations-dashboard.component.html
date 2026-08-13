@@ -1,0 +1,264 @@
+<div class="container-fluid view-area ops-page">
+
+  <div class="row ops-stat-row">
+
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card ops-stat-card-accent">
+        <div class="ops-stat-icon ops-stat-icon-green">
+          <fa-icon [icon]="faMoneyCheck"></fa-icon>
+        </div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Total disbursements ({{currentFinancialYear}})</div>
+          <div class="ops-stat-value">{{formatNumberWithCommas(currentYearDisbursements)}}</div>
+          <div class="ops-stat-sub">{{defaultCurrency}}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card">
+        <div class="ops-stat-icon ops-stat-icon-blue">
+          <fa-icon [icon]="faTasks"></fa-icon>
+        </div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Active projects</div>
+          <div class="ops-stat-value">{{projectsCount}}</div>
+          <div class="ops-stat-sub">AIMS projects</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card">
+        <div class="ops-stat-icon ops-stat-icon-orange">
+          <fa-icon [icon]="faBuilding"></fa-icon>
+        </div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Organizations</div>
+          <div class="ops-stat-value">{{organizationsCount}}</div>
+          <div class="ops-stat-sub">Registered partners</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">
+      <div class="ops-stat-card">
+        <div class="ops-stat-icon ops-stat-icon-purple">
+          <fa-icon [icon]="faUser"></fa-icon>
+        </div>
+        <div class="ops-stat-content">
+          <div class="ops-stat-label">Registered users</div>
+          <div class="ops-stat-value">{{usersCount}}</div>
+          <div class="ops-stat-sub">User accounts</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row ops-main-row">
+
+    <div class="col-lg-8 col-md-12 ops-main-col">
+      <div class="ops-panel ops-panel-map">
+        <div class="ops-panel-header">
+          <h6 class="ops-panel-title">Project locations</h6>
+          <div class="ops-chart-filter">
+            <select class="ops-chart-filter-select" [(ngModel)]="regionFromYear" (ngModelChange)="onRegionYearFilter()">
+              <option [ngValue]="0">From</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="regionToYear" (ngModelChange)="onRegionYearFilter()">
+              <option [ngValue]="0">To</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <button class="ops-chart-filter-clear" *ngIf="regionFromYear || regionToYear" (click)="clearRegionYearFilter()"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+        <div class="ops-panel-body ops-panel-body-flush ops-map-body">
+          <div class="ops-map-loading" *ngIf="isMapLoading">Loading map data...</div>
+          <div #opsMap class="ops-map"></div>
+          <div class="ops-map-legend" *ngIf="!isMapLoading">
+            <div class="ops-map-legend-title">Regions</div>
+            <div class="ops-map-legend-item" *ngFor="let item of mapLegend">
+              <span class="ops-map-legend-dot" [style.background]="item.color"></span>
+              <span class="ops-map-legend-label">{{item.label}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-12 ops-main-col">
+      <div class="ops-panel ops-panel-feed">
+        <div class="ops-panel-header">
+          <h6 class="ops-panel-title">Recent activity</h6>
+        </div>
+        <div class="ops-panel-body ops-panel-body-flush">
+          <div class="ops-feed-loading" *ngIf="isFeedLoading">Loading recent activity...</div>
+          <ul class="ops-feed-list" *ngIf="latestProjects.length > 0">
+            <li class="ops-feed-item" *ngFor="let project of latestProjects" (click)="viewProjectDetail(project.id)">
+              <div class="ops-feed-dot"></div>
+              <div class="ops-feed-content">
+                <div class="ops-feed-title">{{project.title}}</div>
+                <div class="ops-feed-meta">
+                  <span class="ops-feed-amount">{{defaultCurrencyCode}} {{formatNumberWithCommas(project.projectCost)}}</span>
+                  <span class="ops-feed-years">{{project.startingFinancialYear}} &ndash; {{project.endingFinancialYear}}</span>
+                </div>
+              </div>
+            </li>
+          </ul>
+          <div class="ops-feed-empty" *ngIf="latestProjects.length == 0 && !isFeedLoading">
+            No recent activity to show
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row ops-charts-row">
+
+    <div class="col-lg-4 col-md-12 ops-chart-col">
+      <div class="ops-panel ops-panel-chart">
+        <div class="ops-panel-header">
+          <h6 class="ops-panel-title">Funding by sector</h6>
+          <div class="ops-chart-filter">
+            <select class="ops-chart-filter-select" [(ngModel)]="selectedSectorTypeId" (ngModelChange)="onSectorTypeChange()">
+              <option *ngFor="let type of sectorTypesList" [ngValue]="type.id">{{type.typeName}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="selectedSectorId" (ngModelChange)="onSectorChange()">
+              <option [ngValue]="0">All sectors</option>
+              <option *ngFor="let sector of sectorsList" [ngValue]="sector.id">{{sector.sectorName}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="sectorFromYear" (ngModelChange)="onSectorYearFilter()">
+              <option [ngValue]="0">From</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="sectorToYear" (ngModelChange)="onSectorYearFilter()">
+              <option [ngValue]="0">To</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <button class="ops-chart-filter-clear" *ngIf="sectorFromYear || sectorToYear" (click)="clearSectorYearFilter()"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+        <div class="ops-panel-body">
+          <div class="ops-chart-loading" *ngIf="isSectorChartLoading">Loading sector data...</div>
+          <div class="ops-chart-holder" *ngIf="!isSectorChartLoading">
+            <canvas baseChart [type]="sectorChartType" [data]="sectorChartData" [options]="sectorChartOptions"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-12 ops-chart-col">
+      <div class="ops-panel ops-panel-chart">
+        <div class="ops-panel-header">
+          <h6 class="ops-panel-title">Funding by region</h6>
+          <div class="ops-chart-filter">
+            <select class="ops-chart-filter-select" [(ngModel)]="regionFromYear" (ngModelChange)="onRegionYearFilter()">
+              <option [ngValue]="0">From</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="regionToYear" (ngModelChange)="onRegionYearFilter()">
+              <option [ngValue]="0">To</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <button class="ops-chart-filter-clear" *ngIf="regionFromYear || regionToYear" (click)="clearRegionYearFilter()"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+        <div class="ops-panel-body">
+          <div class="ops-chart-loading" *ngIf="isRegionChartLoading">Loading region data...</div>
+          <div class="ops-chart-holder" *ngIf="!isRegionChartLoading">
+            <canvas baseChart [type]="regionChartType" [data]="regionChartData" [options]="regionChartOptions"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-12 ops-chart-col">
+      <div class="ops-panel ops-panel-chart">
+        <div class="ops-panel-header">
+          <h6 class="ops-panel-title">Donor contributions</h6>
+          <div class="ops-chart-filter">
+            <select class="ops-chart-filter-select" [(ngModel)]="donorFromYear" (ngModelChange)="onDonorYearFilter()">
+              <option [ngValue]="0">From</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="donorToYear" (ngModelChange)="onDonorYearFilter()">
+              <option [ngValue]="0">To</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <button class="ops-chart-filter-clear" *ngIf="donorFromYear || donorToYear" (click)="clearDonorYearFilter()"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+        <div class="ops-panel-body">
+          <div class="ops-chart-loading" *ngIf="isDonorChartLoading">Loading donor data...</div>
+          <div class="ops-chart-holder" *ngIf="!isDonorChartLoading">
+            <canvas baseChart [type]="donorChartType" [data]="donorChartData" [options]="donorChartOptions"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row ops-charts-row">
+
+    <div class="col-lg-7 col-md-12 ops-chart-col">
+      <div class="ops-panel ops-panel-chart">
+        <div class="ops-panel-header">
+          <h6 class="ops-panel-title">Disbursement trends by year</h6>
+          <div class="ops-chart-filter">
+            <select class="ops-chart-filter-select" [(ngModel)]="trendFromYear" (ngModelChange)="onTrendYearFilter()">
+              <option [ngValue]="0">From</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="trendToYear" (ngModelChange)="onTrendYearFilter()">
+              <option [ngValue]="0">To</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <button class="ops-chart-filter-clear" *ngIf="trendFromYear || trendToYear" (click)="clearTrendYearFilter()"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+        <div class="ops-panel-body">
+          <div class="ops-chart-loading" *ngIf="isTrendChartLoading">Loading trend data...</div>
+          <div class="ops-chart-holder" *ngIf="!isTrendChartLoading">
+            <canvas baseChart [type]="trendChartType" [data]="trendChartData" [options]="trendChartOptions"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5 col-md-12 ops-chart-col">
+      <div class="ops-panel ops-panel-chart">
+        <div class="ops-panel-header">
+          <h6 class="ops-panel-title">Budget: actual vs planned</h6>
+          <div class="ops-chart-filter">
+            <select class="ops-chart-filter-select" [(ngModel)]="budgetFromYear" (ngModelChange)="onBudgetYearFilter()">
+              <option [ngValue]="0">From</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <select class="ops-chart-filter-select" [(ngModel)]="budgetToYear" (ngModelChange)="onBudgetYearFilter()">
+              <option [ngValue]="0">To</option>
+              <option *ngFor="let yr of yearsList" [ngValue]="yr.financialYear">{{yr.financialYear}}</option>
+            </select>
+            <button class="ops-chart-filter-clear" *ngIf="budgetFromYear || budgetToYear" (click)="clearBudgetYearFilter()"><i class="fa fa-times"></i></button>
+          </div>
+        </div>
+        <div class="ops-panel-body">
+          <div class="ops-chart-loading" *ngIf="isBudgetChartLoading">Loading budget data...</div>
+          <div class="ops-chart-holder" *ngIf="!isBudgetChartLoading">
+            <canvas baseChart [type]="budgetChartType" [data]="budgetChartData" [options]="budgetChartOptions"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ops-funding-note">
+    <i class="fa fa-info-circle"></i>
+    Funding figures are estimated by dividing project value equally among all funders when a project has multiple donors, since exact per-donor contribution amounts are not tracked in the system.
+  </div>
+
+</div>

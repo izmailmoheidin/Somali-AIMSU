@@ -1,0 +1,405 @@
+/* ===== Design tokens (shared with ops dashboard) ===== */
+:host {
+  --pe-navy: #0b2545;
+  --pe-navy-light: #13315c;
+  --pe-blue: #4189dd;
+  --pe-blue-dark: #2f6bb3;
+  --pe-blue-soft: #eaf2fb;
+  --pe-green: #16a34a;
+  --pe-green-soft: #dcfce7;
+  --pe-orange: #ea580c;
+  --pe-orange-soft: #fff7ed;
+  --pe-red: #ef4444;
+  --pe-red-soft: #fef2f2;
+  --pe-text: #1f2937;
+  --pe-text-muted: #6b7280;
+  --pe-border: #e2e8f0;
+  --pe-card-bg: #ffffff;
+  --pe-shadow: 0 1px 3px rgba(11, 37, 69, 0.06), 0 4px 12px rgba(11, 37, 69, 0.05);
+  --pe-shadow-hover: 0 4px 8px rgba(11, 37, 69, 0.08), 0 8px 24px rgba(11, 37, 69, 0.10);
+  --pe-radius: 14px;
+  --pe-radius-sm: 8px;
+}
+
+/* ===== Page background ===== */
+.pe-page {
+  background: #f1f5f9;
+  padding-bottom: 32px;
+}
+
+/* ===== Page header ===== */
+.pe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 22px 28px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--pe-navy) 0%, var(--pe-navy-light) 100%);
+  border-radius: var(--pe-radius);
+  box-shadow: 0 4px 16px rgba(11, 37, 69, 0.18);
+}
+
+.pe-header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.pe-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.pe-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+}
+
+.pe-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4px;
+}
+
+.pe-project-badge {
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* ===== Tab navigation ===== */
+.pe-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: 20px;
+  padding: 0 4px;
+  border-bottom: 2px solid var(--pe-border);
+  background: var(--pe-card-bg);
+  border-radius: var(--pe-radius) var(--pe-radius) 0 0;
+  box-shadow: var(--pe-shadow);
+}
+
+.pe-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pe-text-muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pe-tab:hover {
+  color: var(--pe-blue-dark);
+  text-decoration: none;
+}
+
+.pe-tab.active {
+  color: var(--pe-navy);
+  border-bottom-color: var(--pe-blue);
+}
+
+.pe-tab i {
+  font-size: 0.9rem;
+}
+
+/* ===== Cards ===== */
+.pe-card {
+  background: var(--pe-card-bg);
+  border: 1px solid var(--pe-border);
+  border-radius: var(--pe-radius);
+  box-shadow: var(--pe-shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.pe-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--pe-border);
+  background: #f8fafc;
+}
+
+.pe-card-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--pe-navy);
+}
+
+.pe-card-body {
+  padding: 20px;
+}
+
+/* Style existing card / box classes used by sub-components */
+.card,
+.box {
+  background: var(--pe-card-bg);
+  border: 1px solid var(--pe-border);
+  border-radius: var(--pe-radius);
+  box-shadow: var(--pe-shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.card .card-header,
+.box .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--pe-border);
+  background: #f8fafc;
+}
+
+.card .card-title,
+.box .card-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--pe-navy);
+}
+
+.card .padding-20,
+.box .padding-20 {
+  padding: 20px;
+}
+
+/* ===== Forms ===== */
+.form-signin .form-group,
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-signin .form-group label,
+.form-group label,
+.col-form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pe-navy);
+  margin-bottom: 6px;
+}
+
+.form-signin .form-group .text-info,
+.form-group .text-info {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--pe-text-muted);
+}
+
+.form-control {
+  border: 1px solid var(--pe-border);
+  border-radius: var(--pe-radius-sm);
+  font-size: 0.9rem;
+  color: var(--pe-text);
+  padding: 8px 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--pe-blue);
+  box-shadow: 0 0 0 3px rgba(65, 137, 221, 0.12);
+  outline: none;
+}
+
+.form-control[disabled],
+.form-control:disabled {
+  background: #f1f5f9;
+  color: var(--pe-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Disable overlay class — used widely in the template */
+.disable {
+  opacity: 0.45;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* ===== Buttons ===== */
+.btn-info {
+  background: linear-gradient(135deg, var(--pe-navy) 0%, var(--pe-navy-light) 100%);
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: var(--pe-radius-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, var(--pe-navy-light) 0%, var(--pe-navy) 100%);
+  box-shadow: 0 2px 8px rgba(11, 37, 69, 0.15);
+  transform: translateY(-1px);
+}
+
+.btn-info.btn-block {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+}
+
+.btn-success {
+  background: var(--pe-green);
+  border: none;
+  border-radius: var(--pe-radius-sm);
+  font-weight: 600;
+}
+
+.btn-success:hover {
+  background: #15803d;
+}
+
+.btn-danger {
+  background: var(--pe-red);
+  border: none;
+  border-radius: var(--pe-radius-sm);
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn-warning {
+  background: var(--pe-orange);
+  border: none;
+  color: #ffffff;
+  border-radius: var(--pe-radius-sm);
+  font-weight: 600;
+}
+
+.btn-warning:hover {
+  background: #c2410c;
+}
+
+.btn-sm {
+  border-radius: 6px;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+}
+
+/* ===== Tables ===== */
+.table.table-bordered {
+  border: 1px solid var(--pe-border);
+  border-radius: var(--pe-radius-sm);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.table.table-bordered thead th,
+.table.table-bordered tr:first-child th {
+  background: #f8fafc;
+  color: var(--pe-navy);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-color: var(--pe-border);
+  padding: 10px 14px;
+}
+
+.table.table-bordered td {
+  padding: 10px 14px;
+  font-size: 0.87rem;
+  color: var(--pe-text);
+  border-color: var(--pe-border);
+}
+
+.table.table-bordered tbody tr:hover {
+  background: #f8fafc;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background: #fafbfc;
+}
+
+/* ===== Alert / validation ===== */
+.alert-danger {
+  background: var(--pe-red-soft);
+  border: 1px solid #fecaca;
+  border-radius: var(--pe-radius-sm);
+  color: #991b1b;
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  margin-top: 6px;
+}
+
+.alert-info {
+  border-radius: var(--pe-radius);
+  border: 1px solid var(--pe-border);
+}
+
+/* ===== Badges ===== */
+.badge-warning {
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+/* ===== Section headings inside sub-components ===== */
+h6 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--pe-navy);
+  margin-bottom: 12px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .pe-header {
+    padding: 18px 20px;
+  }
+
+  .pe-title {
+    font-size: 1.25rem;
+  }
+
+  .pe-tab {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  .pe-tab i {
+    display: none;
+  }
+
+  .card .padding-20,
+  .box .padding-20,
+  .pe-card-body {
+    padding: 16px;
+  }
+}

@@ -1,21 +1,21 @@
-<div class="container-fluid view-area">
-  
-<div class="row">
-  <div class="col-md-6">
-    <ul class="nav nav-tabs">
-      <li class="nav-item">
-        <a class="nav-link active btn-info" data-toggle="tab" >Sectors list</a>
-      </li>
-      <!--<li class="nav-item">
-        <a class="nav-link active text-info" [routerLink]="['/sector-mappings']" data-toggle="tab" >Sectors mappings</a>
-      </li>-->
-      <li *ngIf="permissions.canEditSector" class="nav-item">
-        <a class="nav-link text-info" data-toggle="tab" [routerLink]="['/manage-sector']">Create new</a>
-      </li>
-    </ul>
+<div class="container-fluid view-area pe-page">
+
+<div class="pe-header">
+  <div class="pe-header-left">
+    <h1 class="pe-title">Sectors</h1>
+    <span class="pe-subtitle">View and manage all sectors across sector types</span>
   </div>
-  <div class="col-md-6">
-    <div class="input-group mb-3">
+</div>
+
+<div class="pe-tabs">
+  <a class="pe-tab active">Sectors list</a>
+  <!--<a class="pe-tab" [routerLink]="['/sector-mappings']">Sectors mappings</a>-->
+  <a *ngIf="permissions.canEditSector" class="pe-tab" [routerLink]="['/manage-sector']">Create new</a>
+</div>
+
+<div class="row" style="margin-bottom: 16px;">
+  <div class="col-md-12">
+    <div class="input-group" style="max-width: 600px;">
       <select placeholder="Select sector type" class="form-control" id="sectorTypeId" [(ngModel)]="model.sectorTypeId"
         name="sectorTypeId" #sectorTypeId="ngModel" (change)="getSectorsForType()">
         <option *ngFor="let sectorType of sectorTypesList" [value]="sectorType.id">{{sectorType.typeName}}</option>
@@ -27,7 +27,7 @@
         <button class="btn btn-outline-info" (click)="searchSectors()" type="button"><i class="fa fa-search"></i></button>
       </div>
     </div>
-    </div>
+  </div>
 </div>
 
 <div class="row text-center" *ngIf="isLoading">
@@ -38,11 +38,11 @@
 
 <div *ngIf="!isLoading" class="row">
   <div *ngIf="filteredSectorsList.length > 0" class="col margin-top-10">
-    <table class="table table-bordered table-stripped">
+    <table class="table table-bordered table-striped">
       <tr>
         <th>Sector name</th>
         <th>Sector type</th>
-        <th *ngIf="selectedSectorTypeId == defaultSectorTypeId">Actions</th>
+        <th>Actions</th>
       </tr>
       <tr *ngFor="let sector of filteredSectorsList | paginate: { itemsPerPage: pagingSize, currentPage: p }">
         <td>{{sector.sectorName}}</td>

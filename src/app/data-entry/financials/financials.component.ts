@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { StoreService } from 'src/app/services/store-service';
 import { ErrorModalComponent } from 'src/app/error-modal/error-modal.component';
 import { Messages } from 'src/app/config/messages';
@@ -11,7 +11,7 @@ import { HelpService } from 'src/app/services/help-service';
   templateUrl: './financials.component.html',
   styleUrls: ['./financials.component.css']
 })
-export class FinancialsComponent implements OnInit {
+export class FinancialsComponent implements OnInit, OnDestroy {
 
   @Input()
   projectId: number = 0;
@@ -98,6 +98,12 @@ export class FinancialsComponent implements OnInit {
     this.getHelp();
     this.calculateDisbursementsTotal();
     this.disbursementsTotalOnLoad = this.disbursementsTotal;
+  }
+
+  ngOnDestroy() {
+    if (this.projectId && this.disbursementsTotalOnLoad != this.disbursementsTotal) {
+      this.saveDisbursements(null);
+    }
   }
 
   ngOnChanges() {
@@ -378,7 +384,7 @@ export class FinancialsComponent implements OnInit {
 
       var totalDisbursements = 0;
       this.projectDisbursements.forEach(d => {
-        totalDisbursements = (d.disbursement * d.exchangeRate);
+        totalDisbursements += (d.amount * d.exchangeRate);
       });
 
       if (totalDisbursements > (this.projectValue * this.exchangeRate)) {

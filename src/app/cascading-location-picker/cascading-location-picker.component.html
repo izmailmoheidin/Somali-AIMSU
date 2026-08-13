@@ -1,0 +1,31 @@
+<div class="form-group">
+  <label for="stateId" class="small">State</label>
+  <select class="form-control" id="stateId"
+    [(ngModel)]="selectedStateId" name="stateId"
+    (change)="onStateChange()" [required]="required">
+    <option [ngValue]="null">--Select state--</option>
+    <option *ngFor="let state of cascadingStates" [value]="state.id">{{state.location}}</option>
+  </select>
+
+  <label for="regionId" class="small margin-top-10">Region (optional)</label>
+  <select class="form-control margin-top-5" id="regionId"
+    [(ngModel)]="selectedRegionId" name="regionId"
+    (change)="onRegionChange()" [disabled]="!selectedStateId">
+    <option [ngValue]="null">--Select region--</option>
+    <option *ngFor="let region of cascadingRegions" [value]="region.id">{{region.location}}</option>
+  </select>
+  <div *ngIf="selectedStateId && cascadingRegions.length == 0" class="text-muted small margin-top-5">
+    <i>No regions available for this state</i>
+  </div>
+
+  <label for="districtId" class="small margin-top-10">District (optional)</label>
+  <select class="form-control margin-top-5" id="districtId"
+    [(ngModel)]="selectedDistrictId" name="districtId"
+    (change)="onDistrictChange()" [disabled]="!selectedRegionId">
+    <option [ngValue]="null">--Select district--</option>
+    <option *ngFor="let district of cascadingDistricts" [value]="district.id">{{district.location}}</option>
+  </select>
+  <div *ngIf="selectedRegionId && cascadingDistricts.length == 0" class="text-muted small margin-top-5">
+    <i>No districts available for this region</i>
+  </div>
+</div>

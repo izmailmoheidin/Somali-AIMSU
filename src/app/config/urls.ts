@@ -7,9 +7,9 @@ export const urls = {
 	//baseUrl: "https://aimsapis.mop.gov.so/api/",
 	//excelFilesUrl: "https://aimsapis.mop.gov.so/ExcelFiles/",
 	//dataBackupFilesUrl: "https://aimsapis.mop.gov.so/DataBackups/",
-	baseUrl: "http://localhost:60815/api/",
-	excelFilesUrl: "http://localhost:60815/ExcelFiles/",
-	dataBackupFilesUrl: "http://localhost:60815/DataBackups/",
+	baseUrl: "http://localhost:5081/api/",
+	excelFilesUrl: "http://localhost:5081/ExcelFiles/",
+	dataBackupFilesUrl: "http://localhost:5081/DataBackups/",
 	getToken: "User/Token",
 	checkEmailAvailability: "User/CheckEmailAvailability/",
 	userRegistration: "User",
@@ -231,5 +231,6 @@ export const urls = {
 	addFundingUrl: "Funding/AddFunding",
 	deleteFundingUrl: "Funding/DeleteFunding/",
 	getFundingByProjectIdUrl: "Funding/GetByProjectId/",
-	hangfireAuthenticate: "HangfireAuth/authenticate"
+	hangfireAuthenticate: "HangfireAuth/authenticate",
+	aiAssistantAsk: "AIAssistant/Ask"
 };

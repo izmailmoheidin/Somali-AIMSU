@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { Settings } from 'src/app/config/settings';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { Messages } from 'src/app/config/messages';
@@ -11,7 +11,7 @@ import { ErrorModalComponent } from 'src/app/error-modal/error-modal.component';
   templateUrl: './project-markers.component.html',
   styleUrls: ['./project-markers.component.css']
 })
-export class ProjectMarkersComponent implements OnInit {
+export class ProjectMarkersComponent implements OnInit, OnDestroy {
 
   @Input()
   projectId: number = 0;
@@ -40,6 +40,17 @@ export class ProjectMarkersComponent implements OnInit {
     private errorModal: ErrorModalComponent) { }
 
   ngOnInit() {
+  }
+
+  ngOnDestroy() {
+    if (this.projectId && this.currentSelectedFieldValues.length > 0) {
+      this.currentSelectedFieldValues.forEach((field) => {
+        var saved = this.currentProjectMarkers.filter(m => m.markerId == field.fieldId);
+        if (saved.length == 0 || (saved.length > 0 && JSON.stringify(saved[0].values) != JSON.stringify(field.values))) {
+          this.saveProjectMarkers(field.fieldId);
+        }
+      });
+    }
   }
 
   selectFieldValue(fieldType: any, id: number, fieldId: number, el: any, isTypeText = false) {

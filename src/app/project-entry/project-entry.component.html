@@ -1,63 +1,65 @@
 <div class="container-fluid view-area-shrinked">
 
   <block-ui>
-    <div class="container-fluid position-fixed stay-on-top background-white padding-top-10" >
-      <div class="row">
-        <div class="col-md-12 ">
-          <ul class="nav nav-tabs">
-  
-            <li class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'project', 'text-info': currentTab != 'project'}" href="#"
-                class="nav-link text-info" (click)="showProjects()" data-toggle="tab">Name/Description</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'funder', 'text-info': currentTab != 'funder'}" href="#"
-                class="nav-link text-info" (click)="showFunders()" data-toggle="tab">Funders/Financing</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'implementer', 'text-info': currentTab != 'implementer'}" href="#"
-                class="nav-link text-info" (click)="showImplementers()" data-toggle="tab">Implementers</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'sector', 'text-info': currentTab != 'sector'}" href="#"
-                class="nav-link text-info" (click)="showSectors()" data-toggle="tab">Sectors</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'location', 'text-info': currentTab != 'location'}" href="#"
-                class="nav-link text-info" (click)="showLocations()" data-toggle="tab">Locations</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'document', 'text-info': currentTab != 'document'}" href="#"
-                class="nav-link text-info" (click)="showDocuments()" data-toggle="tab">Documents</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'disbursement', 'text-info': currentTab != 'disbursement'}"
-                href="#" class="nav-link text-info" (click)="showDisbursements()" data-toggle="tab">Disbursements</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'customFields', 'text-info': currentTab != 'customFields'}"
-                href="#" class="nav-link text-info" (click)="showCustomFields()" data-toggle="tab">Custom fields</a>
-            </li>
-            <li *ngIf="activeProjectId != 0" class="nav-item">
-              <a [ngClass]="{'btn-info': currentTab == 'finish', 'text-info': currentTab != 'finish'}" href="#"
-                class="nav-link text-info" (click)="showFinishProject()" data-toggle="tab">Finish Project</a>
-            </li>
-  
-          </ul>
-        </div>
+
+    <!-- Page header -->
+    <div class="pe-header">
+      <div class="pe-header-left">
+        <h4 class="pe-title">{{model.title || 'New Project'}}</h4>
+        <div class="pe-subtitle">Data Entry &mdash; {{currentTabLabel}}</div>
       </div>
-      
+      <div class="pe-header-right" *ngIf="activeProjectId != 0">
+        <div class="pe-project-badge">Project #{{activeProjectId}}</div>
+      </div>
     </div>
 
-    <div class="row text-center margin-top-50">
-      <div *ngIf="showMessage" class="alert alert-info alert-dismissible">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <strong>Information!</strong> {{infoMessage}}
-      </div>
+    <!-- Tab navigation -->
+    <div class="pe-tabs">
+      <a [class.active]="currentTab == 'project'" href="#"
+        class="pe-tab" (click)="showProjects()" data-toggle="tab">
+        <i class="fa fa-file-text"></i> Name/Description
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'funder'" href="#"
+        class="pe-tab" (click)="showFunders()" data-toggle="tab">
+        <i class="fa fa-money-bill"></i> Funders/Financing
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'implementer'" href="#"
+        class="pe-tab" (click)="showImplementers()" data-toggle="tab">
+        <i class="fa fa-users"></i> Implementers
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'sector'" href="#"
+        class="pe-tab" (click)="showSectors()" data-toggle="tab">
+        <i class="fa fa-layer-group"></i> Sectors
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'location'" href="#"
+        class="pe-tab" (click)="showLocations()" data-toggle="tab">
+        <i class="fa fa-map-marker"></i> Locations
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'document'" href="#"
+        class="pe-tab" (click)="showDocuments()" data-toggle="tab">
+        <i class="fa fa-folder-open"></i> Documents
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'disbursement'" href="#"
+        class="pe-tab" (click)="showDisbursements()" data-toggle="tab">
+        <i class="fa fa-exchange"></i> Disbursements
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'customFields'" href="#"
+        class="pe-tab" (click)="showCustomFields()" data-toggle="tab">
+        <i class="fa fa-list-alt"></i> Custom Fields
+      </a>
+      <a *ngIf="activeProjectId != 0" [class.active]="currentTab == 'finish'" href="#"
+        class="pe-tab" (click)="showFinishProject()" data-toggle="tab">
+        <i class="fa fa-check-circle"></i> Finish Project
+      </a>
+    </div>
+
+    <div *ngIf="showMessage" class="pe-info-banner alert-dismissible">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Information!</strong> {{infoMessage}}
     </div>
 
     <!--Data entry tab for projects-->
-    <div *ngIf="currentTab == 'project'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'project'" class="row pe-tab-content">
 
       <div *ngIf="isShowSources" class="col-md-6">
         <div class="col-md-12 col-sm-12">
@@ -203,7 +205,7 @@
     <!--End of data entry tab-->
 
     <!--Sectors tab for projects-->
-    <div *ngIf="currentTab == 'sector'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'sector'" class="row pe-tab-content">
 
       <div *ngIf="isShowSources" class="col-md-6 col-sm-6">
 
@@ -316,15 +318,37 @@
               </div>
 
               <div [class.disable]="sectorModel.sectorTypeId == null" *ngIf="sectorEntryType == 'aims'" class="form-group">
-                <mat-form-field class="example-full-width">
-                  <input matInput placeholder="Enter/Select sector" aria-label="Sector" [matAutocomplete]="auto"
-                  name="sector" #sector="ngModel" [(ngModel)]="sectorModel.sectorObj" (ngModelChange)="filterSector()">
-                  <mat-autocomplete #auto="matAutocomplete" [displayWith]="displaySectorFn.bind(this)">
-                    <mat-option *ngFor="let sector of filteredSectors" [value]="sector">
-                      <span>{{sector.sectorName}}</span>
-                    </mat-option>
-                  </mat-autocomplete>
-                </mat-form-field>
+                <label for="pillarId">Pillar</label>
+                <select class="form-control" id="pillarId"
+                  [(ngModel)]="selectedPillarId" name="pillarId" #pillarId="ngModel"
+                  (change)="onPillarChange()" required>
+                  <option [ngValue]="null">--Select pillar--</option>
+                  <option *ngFor="let pillar of cascadingPillars" [value]="pillar.id">{{pillar.sectorName}}</option>
+                </select>
+                <div *ngIf="projectSectorForm.submitted" [hidden]="pillarId.valid" class="alert alert-danger">
+                  Pillar is required
+                </div>
+
+                <label for="chapterId" class="margin-top-10">{{sectorModel.sectorTypeId == 13 ? 'Chapter' : 'Sub-sector'}}</label>
+                <select class="form-control" id="chapterId"
+                  [(ngModel)]="selectedChapterId" name="chapterId" #chapterId="ngModel"
+                  (change)="onChapterChange()" [disabled]="!selectedPillarId" required>
+                  <option [ngValue]="null">--Select {{sectorModel.sectorTypeId == 13 ? 'chapter' : 'sub-sector'}}--</option>
+                  <option *ngFor="let chapter of cascadingChapters" [value]="chapter.id">{{chapter.sectorName}}</option>
+                </select>
+                <div *ngIf="projectSectorForm.submitted" [hidden]="chapterId.valid" class="alert alert-danger">
+                  {{sectorModel.sectorTypeId == 13 ? 'Chapter' : 'Sub-sector'}} is required
+                </div>
+
+                <div *ngIf="cascadingKRAs.length > 0" class="margin-top-10">
+                  <label for="kraId">Key Result Area (optional)</label>
+                  <select class="form-control" id="kraId"
+                    [(ngModel)]="selectedKRAId" name="kraId" #kraId="ngModel"
+                    (change)="onKRAChange()" [disabled]="!selectedChapterId">
+                    <option [ngValue]="null">--Select KRA or leave blank--</option>
+                    <option *ngFor="let kra of cascadingKRAs" [value]="kra.id">{{kra.sectorName}}</option>
+                  </select>
+                </div>
               </div>
 
               <div *ngIf="sectorEntryType == 'iati'" class="form-group">
@@ -340,7 +364,8 @@
                 class="form-group">
                 <label for="sectorName">{{defaultSectorType}}</label>
                 <select class="form-control" id="mappingId" [(ngModel)]="sectorModel.mappingId" name="mappingId"
-                  #mappingId="ngModel" required>
+                  #mappingId="ngModel">
+                  <option [value]="0">--Select mapping (optional)--</option>
                   <option *ngFor="let sector of sectorMappings" [value]="sector.id">{{sector.sectorName}}</option>
                 </select>
                 <div class="margin-top-5" *ngIf="mappingsCount > 0">
@@ -360,9 +385,6 @@
                   </span>
                 </div>
                 <div *ngIf="mappingsCount == 0" class="text-warning"><i>No mappings found, map sector manually</i></div>
-                <div *ngIf="projectSectorForm.submitted" [hidden]="mappingId.valid" class="alert alert-danger">
-                  Mapping for sector is required
-                </div>
               </div>
 
               <div class="form-group">
@@ -423,7 +445,7 @@
     <!--End of Sectors Tab-->
 
     <!--Locations tab for projects-->
-    <div *ngIf="currentTab == 'location'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'location'" class="row pe-tab-content">
 
       <div *ngIf="isShowSources" class="col-md-6 col-sm-6">
 
@@ -519,13 +541,36 @@
               #projectLocationForm="ngForm">
 
               <div *ngIf="locationEntryType == 'aims'" class="form-group">
-                <label for="locationId">AIMS Locations</label>
-                <select class="form-control" id="locationId" [(ngModel)]="locationModel.locationId" name="locationId"
-                  #locationId="ngModel" required>
-                  <option *ngFor="let location of locationsList" [value]="location.id">{{location.location}}</option>
+                <label for="stateId">State</label>
+                <select class="form-control" id="stateId"
+                  [(ngModel)]="selectedStateId" name="stateId" #stateId="ngModel"
+                  (change)="onStateChange()" required>
+                  <option [ngValue]="null">--Select state--</option>
+                  <option *ngFor="let state of cascadingStates" [value]="state.id">{{state.location}}</option>
                 </select>
-                <div *ngIf="projectLocationForm.submitted" [hidden]="locationId.valid" class="alert alert-danger">
-                  Location is required
+                <div *ngIf="projectLocationForm.submitted" [hidden]="stateId.valid" class="alert alert-danger">
+                  State is required
+                </div>
+
+                <label for="regionId" class="margin-top-10">Region (optional)</label>
+                <select class="form-control" id="regionId"
+                  [(ngModel)]="selectedRegionId" name="regionId" #regionId="ngModel"
+                  (change)="onRegionChange()" [disabled]="!selectedStateId">
+                  <option [ngValue]="null">--Select region--</option>
+                  <option *ngFor="let region of cascadingRegions" [value]="region.id">{{region.location}}</option>
+                </select>
+                <div *ngIf="selectedStateId && cascadingRegions.length == 0" class="text-muted small margin-top-5">
+                  <i>No regions available for this state</i>
+                </div>
+
+                <div *ngIf="cascadingDistricts.length > 0" class="margin-top-10">
+                  <label for="districtId">District (optional)</label>
+                  <select class="form-control" id="districtId"
+                    [(ngModel)]="selectedDistrictId" name="districtId" #districtId="ngModel"
+                    (change)="onDistrictChange()" [disabled]="!selectedRegionId">
+                    <option [ngValue]="null">--Select district--</option>
+                    <option *ngFor="let district of cascadingDistricts" [value]="district.id">{{district.location}}</option>
+                  </select>
                 </div>
               </div>
 
@@ -599,7 +644,7 @@
     <!--End of Locations Tab-->
 
     <!--Documents tab for projects-->
-    <div *ngIf="currentTab == 'document'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'document'" class="row pe-tab-content">
 
       <div *ngIf="isShowSources" class="col-md-6 col-sm-6">
         <div class="col-md-12">
@@ -755,7 +800,7 @@
     <!--End of Documents Tab-->
 
     <!--Funders tab for projects-->
-    <div *ngIf="currentTab == 'funder'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'funder'" class="row pe-tab-content">
 
       <div *ngIf="isShowSources" class="col-md-6 col-sm-6">
         <div class="col-md-12">
@@ -1075,7 +1120,7 @@
     <!--End of Funders Tab-->
 
     <!--Implementers tab for projects-->
-    <div *ngIf="currentTab == 'implementer'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'implementer'" class="row pe-tab-content">
 
       <div *ngIf="isShowSources" class="col-md-6 col-sm-6">
         <div class="col-md-12">
@@ -1243,7 +1288,7 @@
     <!--End of Implementers Tab-->
 
     <!--Disbursements tab for projects-->
-    <div *ngIf="currentTab == 'disbursement'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'disbursement'" class="row pe-tab-content">
 
       <div *ngIf="isShowSources" class="col-md-6 col-sm-6">
         <div  class="col-md-12">
@@ -1469,7 +1514,7 @@
     </div>
 
     <!--Custom fields tab for projects-->
-    <div *ngIf="currentTab == 'customFields'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'customFields'" class="row pe-tab-content">
       <div class="col-md-6">
         <div *ngFor="let field of customFieldsList" class="card margin-top-10">
           <div class="card-header bg-info text-white">
@@ -1556,7 +1601,7 @@
     <!--End of Custom fields Tab-->
 
     <!--Finish tab for projects-->
-    <div *ngIf="currentTab == 'finish'" class="row margin-top-50">
+    <div *ngIf="currentTab == 'finish'" class="row pe-tab-content">
 
       <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
         <div class="card card-signin my-5 margin-top-10">
