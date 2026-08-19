@@ -1,0 +1,55 @@
+<div class="container-fluid view-area">
+  <div class="row">
+    <div class="col-md-12">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link text-info" [routerLink]="['/notification-recipients']">Recipients List</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active btn-info">{{btnText}}</a>
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-12">
+      <div class="card card-signin my-5">
+        <div class="card-body">
+          <h5 class="card-title text-center">{{isForEdit ? 'Edit Notification Recipient' : 'Add Notification Recipient'}}</h5>
+
+          <div class="row">
+            <div class="col-md-8">
+              <form class="form-signin" (ngSubmit)="recipientForm.form.valid && saveRecipient(recipientForm)" #recipientForm="ngForm">
+                <div class="form-group">
+                  <label for="email">Email address</label>
+                  <input type="email" class="form-control" id="email" [(ngModel)]="model.email" name="email"
+                    #email="ngModel" required email placeholder="recipient@example.com">
+                  <div *ngIf="recipientForm.submitted" [hidden]="email.valid" class="alert alert-danger">
+                    Valid email address is required
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="name">Name (optional)</label>
+                  <input type="text" class="form-control" id="name" [(ngModel)]="model.name" name="name"
+                    #name="ngModel" placeholder="Recipient name">
+                </div>
+
+                <div class="form-group form-check">
+                  <input type="checkbox" class="form-check-input" id="isActive" [(ngModel)]="model.isActive" name="isActive">
+                  <label class="form-check-label" for="isActive">Active (receives notification emails)</label>
+                </div>
+
+                <button class="btn btn-lg btn-info btn-block text-uppercase" type="submit" [disabled]="isBtnDisabled">
+                  {{btnText}}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div *ngIf="isError" class="alert alert-danger mt-3">
+            {{errorMessage}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

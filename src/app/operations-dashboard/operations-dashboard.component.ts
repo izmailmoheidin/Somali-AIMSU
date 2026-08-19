@@ -223,6 +223,9 @@ export class OperationsDashboardComponent implements OnInit, AfterViewInit, OnDe
     }
   };
 
+  infoMessage: string = null;
+  showMessage: boolean = false;
+
   @ViewChild('opsMap') mapContainer!: ElementRef<HTMLDivElement>;
   map: any = null;
 
@@ -254,6 +257,14 @@ export class OperationsDashboardComponent implements OnInit, AfterViewInit, OnDe
 
   ngOnInit() {
     this.storeService.newReportItem(Settings.dropDownMenus.home);
+    this.storeService.currentInfoMessage.subscribe(message => {
+      this.infoMessage = message;
+      this.showMessage = (message !== null && message !== '');
+    });
+    setTimeout(() => {
+      this.storeService.newInfoMessage('');
+      this.showMessage = false;
+    }, Settings.displayMessageTime);
     this.getCurrentYearDisbursements();
     this.getUsersCount();
     this.getProjectsCount();

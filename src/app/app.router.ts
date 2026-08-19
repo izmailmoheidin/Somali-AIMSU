@@ -53,6 +53,8 @@ import { FundingTypesComponent } from './funding-types/funding-types.component';
 import { ManageFundingTypeComponent } from './manage-funding-type/manage-funding-type.component';
 import { EmailMessagesComponent } from './email-messages/email-messages.component';
 import { ManageEmailMessageComponent } from './manage-email-message/manage-email-message.component';
+import { NotificationRecipientsComponent } from './notification-recipients/notification-recipients.component';
+import { ManageNotificationRecipientComponent } from './manage-notification-recipient/manage-notification-recipient.component';
 import { DeleteSectortypeComponent } from './delete-sectortype/delete-sectortype.component';
 import { LocationReportComponent } from './report-components/location-report/location-report.component';
 import { ProjectReportComponent } from './report-components/project-report/project-report.component';
@@ -95,6 +97,8 @@ import { DeleteSublocationComponent } from './delete-sublocation/delete-sublocat
 import { OperationsDashboardComponent } from './operations-dashboard/operations-dashboard.component';
 import { AIAssistantComponent } from './ai-assistant/ai-assistant.component';
 import { MyOrganizationComponent } from './my-organization/my-organization.component';
+import { CascadingLocationPickerComponent } from './cascading-location-picker/cascading-location-picker.component';
+import { VerifyEmailComponent } from './verify-email/verify-email.component';
 import { StateProfileComponent } from './state-profile/state-profile.component';
 import { AuthGuard } from './guards/auth.guard';
 
@@ -105,6 +109,7 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'user-registration', component: UserRegistrationComponent},
   { path: 'user-org-registration', component: UserOrgRegistrationComponent },
+  { path: 'verify-email', component: VerifyEmailComponent },
   { path: 'password-change', component: PasswordChangeComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent},
@@ -192,6 +197,9 @@ const routes: Routes = [
   { path: 'email-users', component: EmailUsersComponent },
   { path: 'manage-email-message', component: ManageEmailMessageComponent },
   { path: 'manage-email-message/:{id}', component: ManageEmailMessageComponent, data: { isForEdit: true } },
+  { path: 'notification-recipients', component: NotificationRecipientsComponent },
+  { path: 'manage-notification-recipient', component: ManageNotificationRecipientComponent },
+  { path: 'manage-notification-recipient/:{id}', component: ManageNotificationRecipientComponent, data: { isForEdit: true } },
   { path: 'sponsors', component: SponsorLogosComponent},
   { path: 'manage-sponsors', component: ManageSponsorLogosComponent },
   { path: 'manage-sponsors/:{id}', component: ManageSponsorLogosComponent, data: { isForEdit: true } },

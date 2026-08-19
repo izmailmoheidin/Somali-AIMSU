@@ -1,0 +1,74 @@
+<div class="container-fluid view-area">
+  <block-ui>
+    <div class="row">
+      <div class="col-md-6">
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link active btn-info">Notification Recipients</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-info" [routerLink]="['/manage-notification-recipient']">Add New Recipient</a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <div class="input-group mb-3">
+          <input type="text" placeholder="Search by email or name..." class="form-control" id="criteria"
+            (input)="searchRecipients()" [(ngModel)]="criteria" name="criteria"
+            onkeypress="return event.keyCode != 13;" required>
+          <div class="input-group-append">
+            <button class="btn btn-outline-info" (click)="searchRecipients()" type="button"><i
+                class="fa fa-search"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="text-center" *ngIf="isLoading">
+        <div class="col-md-12">
+          <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading...</span>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoading" class="col-md-12">
+        <div *ngIf="filteredRecipientsList.length > 0" class="col margin-top-10">
+          <table class="table table-bordered table-stripped">
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Active</th>
+              <th>Date Added</th>
+              <th>Actions</th>
+            </tr>
+            <tr *ngFor="let recipient of filteredRecipientsList | paginate: { itemsPerPage: pagingSize, currentPage: p }">
+              <td>{{recipient.email}}</td>
+              <td>{{recipient.name || '-'}}</td>
+              <td>
+                <span [ngClass]="{'badge badge-success': recipient.isActive, 'badge badge-secondary': !recipient.isActive}">
+                  {{recipient.isActive ? 'Yes' : 'No'}}
+                </span>
+              </td>
+              <td>{{recipient.dateAdded | date:'medium'}}</td>
+              <td>
+                <a title="Edit" (click)="edit(recipient.id)" class="btn btn-info btn-sm">
+                  <i class="fa fa-edit color-white"></i>
+                </a>
+                <a title="Toggle Active" (click)="toggleActive(recipient)" class="btn btn-warning btn-sm ml-1">
+                  <i class="fa fa-power-off color-white"></i>
+                </a>
+                <a title="Delete" (click)="delete(recipient.id)" class="btn btn-danger btn-sm ml-1">
+                  <i class="fa fa-trash color-white"></i>
+                </a>
+              </td>
+            </tr>
+          </table>
+          <pagination-controls (pageChange)="p=$event"></pagination-controls>
+        </div>
+        <div *ngIf="filteredRecipientsList.length == 0" class="col-md-12 text-info">
+          <i>No notification recipients configured. Click "Add New Recipient" to add one.</i>
+        </div>
+      </div>
+    </div>
+  </block-ui>
+</div>

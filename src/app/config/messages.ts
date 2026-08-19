@@ -1,5 +1,5 @@
 export const Messages = {
-    USER_REGISTRATION_MESSAGE: "Your registration has been sent to other users in your organisation for approval, or if you setup a new organisation, then it has been sent to the AIMS management for approval.",
+    USER_REGISTRATION_MESSAGE: "A verification link has been sent to your email address. Please check your inbox and click the verification link to complete your registration. Your registration will then be reviewed by AIMS management for approval.",
     NEW_RECORD: ' added successfully',
     RECORD_UPDATED: ' updated successfully',
     RECORD_DELETED: ' deleted successfully',

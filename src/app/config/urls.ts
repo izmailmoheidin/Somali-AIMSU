@@ -170,6 +170,7 @@ export const urls = {
 	markerProjects: "Project/GetMarkerProjects/",
 	fundingTypeUrl: "FundingType",
 	emailMessageUrl: "EmailMessage",
+	notificationRecipientUrl: "NotificationRecipient",
 	usersUrl: "User",
 	promoteUserUrl: "User/PromoteUser/",
 	demoteUserUrl: "User/DemoteUser/",

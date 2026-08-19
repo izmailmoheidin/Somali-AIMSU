@@ -63,6 +63,11 @@ export class LoginComponent implements OnInit {
           this.isError = true;
           this.resetDefaultStatus();
         }
+        else if (data && !data.error && !data.isApproved && data.isEmailVerified === false) {
+          this.errorMessage = 'Please verify your email address first. Check your inbox for a verification link from AIMS.';
+          this.isError = true;
+          this.resetDefaultStatus();
+        }
         else if (data && !data.error && !data.isApproved) {
           this.errorMessage = 'Your account is not approved yet';
           this.isError = true;

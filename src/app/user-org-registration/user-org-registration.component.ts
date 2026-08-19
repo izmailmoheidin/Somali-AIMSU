@@ -58,7 +58,7 @@ export class UserOrgRegistrationComponent implements OnInit {
 
     this.requestNo = this.storeService.getNewRequestNumber();
     this.storeService.currentRequestTrack.subscribe(model => {
-      if (model && this.requestNo == model.requestNo && model.errorStatus != 200) {
+      if (model && model.errorStatus != 200) {
         this.errorMessage = model.errorMessage;
         this.isError = true;
       }
@@ -165,20 +165,28 @@ export class UserOrgRegistrationComponent implements OnInit {
     this.btnRegisterText = 'Wait processing...';
     this.userService.registerUser(this.model).subscribe(
       data => {
-        if (!this.isError) {
-          this.storeService
-            .newInfoMessage(Messages.USER_REGISTRATION_MESSAGE);
-          this.btnRegisterText = 'Redirecting...';
-          setTimeout(() => {
-            this.resetModel();
-            this.router.navigateByUrl('');
-          }, this.delaySeconds);
-        } else {
+        if (data && data.success === false) {
+          this.errorMessage = data.message || 'Registration failed. Please try again.';
+          this.isError = true;
           this.resetProcessingStatus();
+          return;
         }
+        if (this.isError) {
+          this.resetProcessingStatus();
+          return;
+        }
+        this.storeService
+          .newInfoMessage(Messages.USER_REGISTRATION_MESSAGE);
+        this.btnRegisterText = 'Redirecting...';
+        setTimeout(() => {
+          this.resetModel();
+          this.router.navigateByUrl('');
+        }, this.delaySeconds);
       },
       error => {
-        console.log("Request Faild: ", error);
+        console.log("Request Failed: ", error);
+        this.errorMessage = 'Registration failed. Please check your input and try again.';
+        this.isError = true;
         this.resetProcessingStatus();
       }
     )

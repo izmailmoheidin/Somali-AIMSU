@@ -84,6 +84,8 @@ import { FundingTypesComponent } from './funding-types/funding-types.component';
 import { ManageFundingTypeComponent } from './manage-funding-type/manage-funding-type.component';
 import { EmailMessagesComponent } from './email-messages/email-messages.component';
 import { ManageEmailMessageComponent } from './manage-email-message/manage-email-message.component';
+import { NotificationRecipientsComponent } from './notification-recipients/notification-recipients.component';
+import { ManageNotificationRecipientComponent } from './manage-notification-recipient/manage-notification-recipient.component';
 import { DeleteSectortypeComponent } from './delete-sectortype/delete-sectortype.component';
 import { LocationReportComponent } from './report-components/location-report/location-report.component';
 import { ProjectReportComponent } from './report-components/project-report/project-report.component';
@@ -146,6 +148,7 @@ import { AIAssistantComponent } from './ai-assistant/ai-assistant.component';
 import { MyOrganizationComponent } from './my-organization/my-organization.component';
 import { StateProfileComponent } from './state-profile/state-profile.component';
 import { CascadingLocationPickerComponent } from './cascading-location-picker/cascading-location-picker.component';
+import { VerifyEmailComponent } from './verify-email/verify-email.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -212,6 +215,8 @@ import { CascadingLocationPickerComponent } from './cascading-location-picker/ca
         ManageFundingTypeComponent,
         EmailMessagesComponent,
         ManageEmailMessageComponent,
+        NotificationRecipientsComponent,
+        ManageNotificationRecipientComponent,
         DeleteSectortypeComponent,
         LocationReportComponent,
         ProjectReportComponent,
@@ -271,7 +276,8 @@ import { CascadingLocationPickerComponent } from './cascading-location-picker/ca
         AIAssistantComponent,
         MyOrganizationComponent,
         StateProfileComponent,
-        CascadingLocationPickerComponent
+        CascadingLocationPickerComponent,
+        VerifyEmailComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         BrowserAnimationsModule,

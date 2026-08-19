@@ -1,5 +1,14 @@
 <div class="container-fluid view-area ops-page">
 
+  <div class="row text-center" *ngIf="showMessage">
+    <div class="col-12">
+      <div class="alert alert-info alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>Information!</strong> {{infoMessage}}
+      </div>
+    </div>
+  </div>
+
   <div class="row ops-stat-row">
 
     <div class="col-lg-3 col-md-6 col-sm-6 col-12 ops-stat-col">

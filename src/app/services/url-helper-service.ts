@@ -344,6 +344,14 @@ export class UrlHelperService {
         return (this.BASE_URL + urlsList.urls.emailMessageUrl + '/' + id);
     }
 
+    getNotificationRecipientsUrl() {
+        return (this.BASE_URL + urlsList.urls.notificationRecipientUrl);
+    }
+
+    getSingleNotificationRecipientUrl(id: string) {
+        return (this.BASE_URL + urlsList.urls.notificationRecipientUrl + '/' + id);
+    }
+
     getDefaultSectorTypeUrl() {
         return (this.BASE_URL + urlsList.urls.defaultSectorTypeUrl);
     }

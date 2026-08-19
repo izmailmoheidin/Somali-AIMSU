@@ -99,6 +99,8 @@
                 messages</a>
               <a *ngIf="permissions.canEditEmailMessage" class="dropdown-item" [routerLink]="['/email-users']">Email
                 users</a>
+              <a *ngIf="permissions.canEditEmailMessage" class="dropdown-item" [routerLink]="['/notification-recipients']">Notification
+                recipients</a>
               <a *ngIf="permissions.canEditSponsors" class="dropdown-item" [routerLink]="['/sponsors']">Sponsors
                 management</a>
               <h5 *ngIf="permissions.canTakeBackup" class="dropdown-header">AIMS database management</h5>
