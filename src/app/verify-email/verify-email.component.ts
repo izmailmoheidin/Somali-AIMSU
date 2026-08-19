@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { UrlHelperService } from '../services/url-helper-service';
 
 @Component({
   selector: 'app-verify-email',
@@ -15,7 +15,7 @@ export class VerifyEmailComponent implements OnInit {
   isError: boolean = false;
   message: string = '';
 
-  constructor(private route: ActivatedRoute, private router: Router, private http: HttpClient) { }
+  constructor(private route: ActivatedRoute, private router: Router, private http: HttpClient, private urlHelper: UrlHelperService) { }
 
   ngOnInit() {
     const token = this.route.snapshot.queryParamMap.get('token');
@@ -28,7 +28,7 @@ export class VerifyEmailComponent implements OnInit {
       return;
     }
 
-    const apiUrl = environment.apiUrl + 'api/User/VerifyEmail?token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
+    const apiUrl = this.urlHelper.getBaseUrl() + 'User/VerifyEmail?token=' + encodeURIComponent(token) + '&email=' + encodeURIComponent(email);
     this.http.get<any>(apiUrl).subscribe(
       data => {
         this.isVerifying = false;
