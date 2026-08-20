@@ -66,6 +66,9 @@ export class ProjectFinishComponent implements OnInit {
     if (!this.viewProjectSectors || this.viewProjectSectors.length === 0) {
       this.validationErrors.push('At least one sector is required');
     }
+    if (!this.viewProjectLocations || this.viewProjectLocations.length === 0) {
+      this.validationErrors.push('At least one location is required');
+    }
     return this.validationErrors.length === 0;
   }
 

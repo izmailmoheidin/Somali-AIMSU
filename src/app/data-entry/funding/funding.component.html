@@ -88,8 +88,8 @@
             (input)="onFundingAmountInput($event)" [appNumberFormat]="fundingModel.fundingAmount"
             id="fundingAmount" required>
         </div>
-        <div [hidden]="fundingAmount.valid" class="alert alert-danger alert-sm">
-          Funding amount is required
+        <div [hidden]="fundingAmount.valid" class="alert alert-info alert-sm">
+          Enter the amount this funder is contributing, then click Add Funding.
         </div>
       </div>
 

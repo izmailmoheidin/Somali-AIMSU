@@ -281,28 +281,13 @@ export class FundingComponent implements OnInit, OnChanges, OnDestroy {
       this.errorModal.openModal()
       return;
     }
-    if (!this.fundingModel.projectId) {
-      this.errorMessage = 'Project is required';
-      this.errorModal.openModal()
-      return;
-    }
-    if (!this.fundingModel.fundingTypeId) {
-      this.errorMessage = 'Funding type is required';
-      this.errorModal.openModal()
-      return;
-    }
-    if (!this.fundingModel.fundingCurrencyId) {
-      this.errorMessage = 'Currency is required';
-      this.errorModal.openModal()
-      return;
-    }
     if (!this.fundingModel.fundingAmount || this.fundingModel.fundingAmount <= 0) {
-      this.errorMessage = 'Funding amount is required and must be greater than 0';
+      this.errorMessage = 'Please enter a funding amount greater than 0 before adding this funder.';
       this.errorModal.openModal()
       return;
     }
     if (this.fundingModel.fundingAmount > this.projectData.projectValue || this.checkAlreadyFundingsSum()) {
-      this.errorMessage = 'Funding value cannot be greater than the project value'
+      this.errorMessage = 'The funding amount (' + this.fundingModel.fundingAmount + ') cannot exceed the project\'s total value (' + this.projectData.projectValue + '). The combined funding from all funders must not exceed the project value.';
       this.errorModal.openModal()
       return;
     }
