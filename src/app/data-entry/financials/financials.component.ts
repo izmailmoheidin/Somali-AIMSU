@@ -92,7 +92,7 @@ export class FinancialsComponent implements OnInit, OnDestroy {
     this.currentYear = this.storeService.getCurrentYear();
     this.disbursementModel.currency = this.projectCurrency;
     this.disbursementModel.projectValue = parseInt(this.projectValue.toString());
-    //this.setDisbursementsData();
+    this.setDisbursementsData();
     this.getExchangeRateForCurrency();
     this.getProjectHelp();
     this.getHelp();
@@ -169,6 +169,7 @@ export class FinancialsComponent implements OnInit, OnDestroy {
 
         if (yr <= this.currentYear) {
           var newDisbursement = {
+            year: yr,
             financialYear: yr,
             currency: this.projectCurrency,
             exchangeRate: 1,
@@ -180,6 +181,7 @@ export class FinancialsComponent implements OnInit, OnDestroy {
 
         if (yr >= this.currentYear) {
           var newDisbursement = {
+            year: yr,
             financialYear: yr,
             currency: this.projectCurrency,
             exchangeRate: 1,
@@ -192,7 +194,7 @@ export class FinancialsComponent implements OnInit, OnDestroy {
     }
 
     if (this.projectDisbursements.length > 0) {
-      this.projectDisbursements.sort((a, b) => parseFloat(a.year) - parseFloat(b.year));
+      this.projectDisbursements.sort((a, b) => (a.year || a.financialYear) - (b.year || b.financialYear));
       this.calculateDisbursementsTotal();
     }
   }
