@@ -164,7 +164,7 @@ export class BasicDataComponent implements OnInit, OnDestroy {
   viewProjectMarkers: any = [];
 
   asyncSaveCount: number = 0;
-  shouldProceedAfterSave: boolean = false;
+  isCreatingProject: boolean = false;
 
   @BlockUI() blockUI: NgBlockUI;
   constructor(private projectService: ProjectService, private errorModal: ErrorModalComponent,
@@ -516,18 +516,18 @@ export class BasicDataComponent implements OnInit, OnDestroy {
 
     this.isProjectBtnDisabled = true;
     this.projectData.fundingTypeId = parseInt(this.projectData.fundingTypeId)
-    this.shouldProceedAfterSave = true;
+    // For existing projects: navigate immediately, save in background
+    // For new projects: we need the project ID before Funding tab can render,
+    // so we show a subtle button state and auto-navigate once created
     if (this.projectId != 0) {
-      this.blockUI.start('Saving project...');
+      this.proceedToNext();
       this.requestNo = this.storeService.getCurrentRequestId();
       this.projectService.updateProject(this.projectId, this.projectData).subscribe(
         data => {
           if (data && data.success === false) {
-            this.blockUI.stop();
             this.errorMessage = data.message || 'Validation error occurred while saving project';
             this.errorModal.openModal();
             this.isProjectBtnDisabled = false;
-            this.shouldProceedAfterSave = false;
             return;
           }
           if (data) {
@@ -540,22 +540,25 @@ export class BasicDataComponent implements OnInit, OnDestroy {
             this.updateProjectIdToParent();
             this.calculateDisbursements();
           } else {
-            this.blockUI.stop();
-            this.shouldProceedAfterSave = false;
+            this.isProjectBtnDisabled = false;
           }
+        },
+        error => {
+          this.errorMessage = 'Failed to save project in background: ' + error;
+          this.errorModal.openModal();
+          this.isProjectBtnDisabled = false;
         }
       );
     } else {
-      this.blockUI.start('Saving project...');
+      this.isCreatingProject = true;
       this.requestNo = this.storeService.getCurrentRequestId();
       this.projectService.addProject(this.projectData).subscribe(
         data => {
           if (data && data.success === false) {
-            this.blockUI.stop();
             this.errorMessage = data.message || 'Validation error occurred while saving project';
             this.errorModal.openModal();
             this.isProjectBtnDisabled = false;
-            this.shouldProceedAfterSave = false;
+            this.isCreatingProject = false;
             return;
           }
           if (data) {
@@ -569,10 +572,19 @@ export class BasicDataComponent implements OnInit, OnDestroy {
             this.saveProjectFunders();
             this.saveProjectImplementers();
             this.calculateDisbursements();
+            // Now that we have a project ID, navigate to Funding
+            this.isCreatingProject = false;
+            this.proceedToNext();
           } else {
-            this.blockUI.stop();
-            this.shouldProceedAfterSave = false;
+            this.isProjectBtnDisabled = false;
+            this.isCreatingProject = false;
           }
+        },
+        error => {
+          this.errorMessage = 'Failed to save project in background: ' + error;
+          this.errorModal.openModal();
+          this.isProjectBtnDisabled = false;
+          this.isCreatingProject = false;
         }
       );
     }
@@ -625,20 +637,10 @@ export class BasicDataComponent implements OnInit, OnDestroy {
     if (this.asyncSaveCount > 0) {
       this.asyncSaveCount--;
       if (this.asyncSaveCount === 0) {
-        this.blockUI.stop();
         this.isProjectBtnDisabled = false;
-        if (this.shouldProceedAfterSave) {
-          this.shouldProceedAfterSave = false;
-          this.proceedToNext();
-        }
       }
     } else {
-      this.blockUI.stop();
       this.isProjectBtnDisabled = false;
-      if (this.shouldProceedAfterSave) {
-        this.shouldProceedAfterSave = false;
-        this.proceedToNext();
-      }
     }
   }
 

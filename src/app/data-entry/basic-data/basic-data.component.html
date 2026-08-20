@@ -312,7 +312,10 @@
 
     <div class="col-lg-12 col-md-12">
       <span class="float-right">
-        <button class="btn btn-info text-uppercase" type="submit">Next >></button>
+        <button class="btn btn-info text-uppercase" type="submit" [disabled]="isCreatingProject">
+          <span *ngIf="!isCreatingProject">Next >></span>
+          <span *ngIf="isCreatingProject">Creating project...</span>
+        </button>
       </span>
     </div>
 

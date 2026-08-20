@@ -7,7 +7,7 @@ export const urls = {
 	//baseUrl: "https://aimsapis.mop.gov.so/api/",
 	//excelFilesUrl: "https://aimsapis.mop.gov.so/ExcelFiles/",
 	//dataBackupFilesUrl: "https://aimsapis.mop.gov.so/DataBackups/",
-	baseUrl: "http://localhost:5081/api/",
+	baseUrl: "http://localhost:5000/api/",
 	excelFilesUrl: "http://localhost:5081/ExcelFiles/",
 	dataBackupFilesUrl: "http://localhost:5081/DataBackups/",
 	getToken: "User/Token",
