@@ -102,6 +102,13 @@ export class ProjectFinishComponent implements OnInit {
   }
 
   goBack() {
+    this.validateProject();
+    if (this.validationErrors.length > 0) {
+      var confirmed = confirm('This project isn\'t complete yet. You can finish it later from the Projects list. Continue back to My Organization?');
+      if (!confirmed) {
+        return;
+      }
+    }
     localStorage.setItem('selected-projects', null);
     localStorage.setItem('active-project', '0');
     if (this.returnTo === 'my-organization') {
