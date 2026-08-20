@@ -454,7 +454,7 @@ export class FundingComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Handle Next button click - Proceed to next section
+   * Handle Next button click - Auto-save unsaved entries then proceed to next section
    * Validates that at least one funding entry exists
    */
   proceedToNext() {
@@ -463,27 +463,29 @@ export class FundingComponent implements OnInit, OnChanges, OnDestroy {
       this.errorModal.openModal()
       return;
     }
-    else if(!this.isSaved) {
-      this.errorMessage = 'Please save the funding entries before proceeding.';
-      this.errorModal.openModal()
-      return;
-    }
-    else {
+    if (!this.isSaved) {
+      this.saveDataAndProceed();
+    } else {
       this.proceedToFinancials.emit()
     }
   }
 
   /**
-   * Handle Save Data button click - Save current funding data
+   * Save current funding data (used by proceedToNext and ngOnDestroy)
    */
   saveData() {
+    this.saveDataAndProceed(false);
+  }
 
+  saveDataAndProceed(proceed: boolean = true) {
     this.blockUI.start('Saving Fundings...')
     const newFundings = this.fundingList.filter(f => !f.id || f.id <= 0);
     if (newFundings.length === 0) {
       this.blockUI.stop()
-      this.errorMessage = 'No new funding entries to save.';
-      this.errorModal.openModal()
+      this.isSaved = true;
+      if (proceed) {
+        this.proceedToFinancials.emit()
+      }
       return;
     }
     // Reset IDs so Entity Framework generates them
@@ -506,9 +508,9 @@ export class FundingComponent implements OnInit, OnChanges, OnDestroy {
           this.fundingList = [...res.data, ...existingList];
           this.enrichAndEmitFundingList();
 
-          this.infoMessage = 'Funding saved successfully';
-          this.infoModal.openModal()
-          
+          if (proceed) {
+            this.proceedToFinancials.emit()
+          }
 
         } else {
           this.errorMessage = 'API Error: ' + res.message;

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { BlockUI, NgBlockUI } from 'ng-block-ui';
 import { ProjectService } from 'src/app/services/project.service';
 import { ProjectInfoModalComponent } from 'src/app/project-info-modal/project-info-modal.component';
@@ -31,6 +31,11 @@ export class ProjectFinishComponent implements OnInit {
   viewProjectMarkers: any = [];
   @Input()
   returnTo: string = null;
+  @Output()
+  saveAndFinishRequested = new EventEmitter<any>();
+
+  validationErrors: string[] = [];
+  showValidation: boolean = false;
 
   @BlockUI() blockUI: NgBlockUI;
   constructor(private projectInfoModal: ProjectInfoModalComponent, private projectService: ProjectService,
@@ -43,6 +48,34 @@ export class ProjectFinishComponent implements OnInit {
     if (this.projectId != 0) {
       this.projectInfoModal.openModal();
     }
+  }
+
+  validateProject(): boolean {
+    this.validationErrors = [];
+    var project: any = this.viewProject;
+
+    if (!project || !project.title) {
+      this.validationErrors.push('Project title is required');
+    }
+    if (!this.viewProjectFunders || this.viewProjectFunders.length === 0) {
+      this.validationErrors.push('At least one funder is required');
+    }
+    if (!this.viewProjectImplementers || this.viewProjectImplementers.length === 0) {
+      this.validationErrors.push('At least one implementer is required');
+    }
+    if (!this.viewProjectSectors || this.viewProjectSectors.length === 0) {
+      this.validationErrors.push('At least one sector is required');
+    }
+    return this.validationErrors.length === 0;
+  }
+
+  saveAndFinish() {
+    this.showValidation = true;
+    if (!this.validateProject()) {
+      return;
+    }
+    this.showValidation = false;
+    this.finishProject();
   }
 
   finishProject() {

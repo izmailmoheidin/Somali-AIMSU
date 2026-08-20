@@ -164,6 +164,7 @@ export class BasicDataComponent implements OnInit, OnDestroy {
   viewProjectMarkers: any = [];
 
   asyncSaveCount: number = 0;
+  shouldProceedAfterSave: boolean = false;
 
   @BlockUI() blockUI: NgBlockUI;
   constructor(private projectService: ProjectService, private errorModal: ErrorModalComponent,
@@ -515,6 +516,7 @@ export class BasicDataComponent implements OnInit, OnDestroy {
 
     this.isProjectBtnDisabled = true;
     this.projectData.fundingTypeId = parseInt(this.projectData.fundingTypeId)
+    this.shouldProceedAfterSave = true;
     if (this.projectId != 0) {
       this.blockUI.start('Saving project...');
       this.requestNo = this.storeService.getCurrentRequestId();
@@ -525,6 +527,7 @@ export class BasicDataComponent implements OnInit, OnDestroy {
             this.errorMessage = data.message || 'Validation error occurred while saving project';
             this.errorModal.openModal();
             this.isProjectBtnDisabled = false;
+            this.shouldProceedAfterSave = false;
             return;
           }
           if (data) {
@@ -538,6 +541,7 @@ export class BasicDataComponent implements OnInit, OnDestroy {
             this.calculateDisbursements();
           } else {
             this.blockUI.stop();
+            this.shouldProceedAfterSave = false;
           }
         }
       );
@@ -551,6 +555,7 @@ export class BasicDataComponent implements OnInit, OnDestroy {
             this.errorMessage = data.message || 'Validation error occurred while saving project';
             this.errorModal.openModal();
             this.isProjectBtnDisabled = false;
+            this.shouldProceedAfterSave = false;
             return;
           }
           if (data) {
@@ -559,12 +564,14 @@ export class BasicDataComponent implements OnInit, OnDestroy {
             this.projectId = data;
             localStorage.setItem('active-project', data);
             this.updateProjectIdToParent();
+            this.asyncSaveCount = 2;
             this.createProjectDisbursements();
             this.saveProjectFunders();
             this.saveProjectImplementers();
             this.calculateDisbursements();
           } else {
             this.blockUI.stop();
+            this.shouldProceedAfterSave = false;
           }
         }
       );
@@ -619,9 +626,19 @@ export class BasicDataComponent implements OnInit, OnDestroy {
       this.asyncSaveCount--;
       if (this.asyncSaveCount === 0) {
         this.blockUI.stop();
+        this.isProjectBtnDisabled = false;
+        if (this.shouldProceedAfterSave) {
+          this.shouldProceedAfterSave = false;
+          this.proceedToNext();
+        }
       }
     } else {
       this.blockUI.stop();
+      this.isProjectBtnDisabled = false;
+      if (this.shouldProceedAfterSave) {
+        this.shouldProceedAfterSave = false;
+        this.proceedToNext();
+      }
     }
   }
 

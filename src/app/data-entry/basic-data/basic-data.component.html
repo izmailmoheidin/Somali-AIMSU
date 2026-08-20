@@ -282,11 +282,6 @@
           <td width="10%">
             <button type="button" class="btn btn-warning text-uppercase" (click)="addResource()">Add resource</button>
           </td>
-          <td width="12%">
-            <span class="float-right">
-              <button class="btn btn-info text-uppercase" type="submit">Save data</button>
-            </span>
-          </td>
         </tr>
       </table>
     </div>
@@ -316,8 +311,8 @@
     </div>
 
     <div class="col-lg-12 col-md-12">
-      <span [class.disable]="projectId == 0" class="float-right">
-        <button class="btn btn-info text-uppercase" (click)="proceedToNext()" type="button">Next >></button>
+      <span class="float-right">
+        <button class="btn btn-info text-uppercase" type="submit">Next >></button>
       </span>
     </div>
 

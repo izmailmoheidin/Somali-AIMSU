@@ -3,7 +3,14 @@
     <div class="card card-signin my-5 margin-top-10">
       <div class="card-body">
         <h6 class="card-title text-center">Finish Project</h6>
-  
+
+        <div *ngIf="showValidation && validationErrors.length > 0" class="alert alert-danger">
+          <strong>Please fix the following before finishing:</strong>
+          <ul>
+            <li *ngFor="let err of validationErrors">{{err}}</li>
+          </ul>
+        </div>
+
         <table class="table">
           <tr>
             <td>
@@ -11,21 +18,21 @@
                 type="button">Review Project Detail</button>
             </td>
           </tr>
-  
+
           <tr>
             <td>
-              <button class="btn btn-success btn-lg btn-block text-uppercase" (click)="finishProject()"
-                type="button">Finish Add/Edit Another</button>
+              <button class="btn btn-success btn-lg btn-block text-uppercase" (click)="saveAndFinish()"
+                type="button">Save and Finish</button>
             </td>
           </tr>
-  
+
           <tr>
             <td>
               <button class="btn btn-danger btn-lg btn-block text-uppercase" (click)="makeDeleteRequest(projectId)"
                 type="button">Make a delete Request</button>
             </td>
           </tr>
-  
+
           <tr>
             <td>
               <button class="btn btn-warning btn-lg btn-block text-uppercase" (click)="goToHome()"
@@ -41,7 +48,7 @@
             </td>
           </tr>
         </table>
-  
+
       </div>
     </div>
   </div>
