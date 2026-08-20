@@ -689,6 +689,7 @@ export class BasicDataComponent implements OnInit, OnDestroy {
   }
 
   saveProjectImplementers() {
+    this.hasUnsavedImplementers = false;
     var implementersWithPercentage = this.implementerModel.selectedImplementers.map(i => ({
       implementerId: i.id,
       fundsPercentage: i.fundsPercentage || 0
