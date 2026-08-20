@@ -594,6 +594,18 @@ export class BasicDataComponent implements OnInit, OnDestroy {
 
   }
 
+  onProjectValueInput(event: any) {
+    const input = event.target;
+    let value = input.value;
+    if (value && typeof value === 'string' && value.includes(',')) {
+      const cleaned = value.replace(/,/g, '');
+      this.projectData.projectValue = parseFloat(cleaned) || 0;
+    } else {
+      this.projectData.projectValue = parseFloat(value) || 0;
+    }
+    this.calculateDisbursements();
+  }
+
   calculateDisbursements() {
     var totalDisbursements = 0;
     if (this.projectDisbursements.length > 0) {

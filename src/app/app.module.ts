@@ -149,6 +149,7 @@ import { MyOrganizationComponent } from './my-organization/my-organization.compo
 import { StateProfileComponent } from './state-profile/state-profile.component';
 import { CascadingLocationPickerComponent } from './cascading-location-picker/cascading-location-picker.component';
 import { VerifyEmailComponent } from './verify-email/verify-email.component';
+import { NumberFormatDirective } from './shared/number-format.directive';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -277,7 +278,8 @@ import { VerifyEmailComponent } from './verify-email/verify-email.component';
         MyOrganizationComponent,
         StateProfileComponent,
         CascadingLocationPickerComponent,
-        VerifyEmailComponent
+        VerifyEmailComponent,
+        NumberFormatDirective
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         BrowserAnimationsModule,

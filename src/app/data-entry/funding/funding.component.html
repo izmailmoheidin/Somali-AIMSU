@@ -82,8 +82,10 @@
       <!-- Funding Amount -->
       <div class="col-lg-6 col-md-6">
         <div class="input-group mb-3">
-          <input placeholder="Funding amount" title="Funding Amount" class="form-control col-sm-12" type="number"
+          <input placeholder="Funding amount" title="Funding Amount" class="form-control col-sm-12" type="text"
+            pattern="[0-9,]*" oninput="validity.valid || (value = this.value.slice(0, -1))"
             min="0" step="0.01" name="fundingAmount" [(ngModel)]="fundingModel.fundingAmount" #fundingAmount="ngModel"
+            (input)="onFundingAmountInput($event)" [appNumberFormat]="fundingModel.fundingAmount"
             id="fundingAmount" required>
         </div>
         <div [hidden]="fundingAmount.valid" class="alert alert-danger alert-sm">
@@ -129,14 +131,14 @@
         </tr>
       </tbody>
     </table>
-    <span *ngIf="fundingList.length == 0" class="text-danger margin-top-20"><i>At least one funding entry is required. Add a funding entry above before proceeding.</i></span>
+    <span *ngIf="fundingList.length == 0" class="text-info margin-top-20"><i>No funding entries added yet. You can add funders now or proceed and add them later before finishing.</i></span>
   </div>
 
   <!-- Action Buttons Section -->
   <div class="col-lg-12 col-md-12">
-    <span [class.disable]="fundingList.length === 0" class="float-right">
-      <button class="btn btn-info text-uppercase" (click)="proceedToNext()" [disabled]="fundingList.length === 0"
-        type="button" title="Proceed to next section (requires at least one funding entry)">
+    <span class="float-right">
+      <button class="btn btn-info text-uppercase" (click)="proceedToNext()"
+        type="button" title="Proceed to next section">
         Next >>
       </button>
       <button class="btn btn-info text-uppercase margin-left-10" (click)="saveData()" type="button">

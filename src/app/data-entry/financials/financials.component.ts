@@ -224,14 +224,32 @@ export class FinancialsComponent implements OnInit, OnDestroy {
     this.calculateDisbursementsTotal();
   }
 
+  onDisbursementInput(event: any) {
+    const input = event.target;
+    let value = input.value;
+    if (value && typeof value === 'string' && value.includes(',')) {
+      const arr = input.id.split('-');
+      const year = arr[1];
+      const disbursementType = arr[2];
+      var disbursement = this.projectDisbursements.filter(d => d.year == year && d.disbursementType == disbursementType);
+      if (disbursement.length > 0) {
+        const cleaned = value.replace(/,/g, '');
+        disbursement[0].amount = cleaned ? parseInt(cleaned) : '';
+      }
+    }
+    this.calculateDisbursementsTotal();
+  }
+
+  hasAtLeastOneDisbursement(): boolean {
+    return this.projectDisbursements.some(d => d.amount && Number(d.amount) > 0);
+  }
+
   calculateDisbursementsTotal() {
     var totalAmount = 0;
     if (this.projectDisbursements.length > 0) {
       this.projectDisbursements.forEach((d) => {
-        if (!d.amount) {
-          d.amount = 0;
-        }
-        totalAmount += parseInt(d.amount);
+        var amt = d.amount ? parseInt(d.amount) : 0;
+        totalAmount += amt;
       });
     }
     this.disbursementsTotal = parseInt(totalAmount.toString());
@@ -241,10 +259,8 @@ export class FinancialsComponent implements OnInit, OnDestroy {
     var totalAmount = 0;
     if (this.projectDisbursements.length > 0) {
       this.projectDisbursements.forEach((d) => {
-        if (!d.amount) {
-          d.amount = 0;
-        }
-        totalAmount += parseInt(d.amount);
+        var amt = d.amount ? parseInt(d.amount) : 0;
+        totalAmount += amt;
       });
     }
     return totalAmount;
@@ -371,9 +387,14 @@ export class FinancialsComponent implements OnInit, OnDestroy {
 
   saveDisbursements(frm: any) {
     if (this.projectDisbursements.length > 0) {
+      if (!this.hasAtLeastOneDisbursement()) {
+        this.errorMessage = 'At least one disbursement amount is required. Please fill in at least one year before saving.';
+        this.errorModal.openModal();
+        return false;
+      }
       var isDataValid = true;
       this.projectDisbursements.forEach(d => {
-        if (isNaN(d.amount)) {
+        if (d.amount && isNaN(d.amount)) {
           this.errorMessage = 'Invalid amount entered for year: ' + d.year;
           this.errorModal.openModal();
           isDataValid = false;
@@ -386,11 +407,12 @@ export class FinancialsComponent implements OnInit, OnDestroy {
 
       var totalDisbursements = 0;
       this.projectDisbursements.forEach(d => {
-        totalDisbursements += (d.amount * d.exchangeRate);
+        var amt = d.amount ? parseFloat(d.amount) : 0;
+        totalDisbursements += (amt * d.exchangeRate);
       });
 
       if (totalDisbursements > (this.projectValue * this.exchangeRate)) {
-        this.errorMessage = '';
+        this.errorMessage = 'Total disbursements cannot exceed project value.';
         this.errorModal.openModal();
         return false;
       }
@@ -398,7 +420,7 @@ export class FinancialsComponent implements OnInit, OnDestroy {
       if (isDataValid) {
         this.blockUI.start('Saving disbursements');
         this.projectDisbursements.forEach((d) => {
-          d.amount = parseFloat(d.amount);
+          d.amount = d.amount ? parseFloat(d.amount) : 0;
         });
         var model = {
           projectId: this.projectId,

@@ -83,8 +83,8 @@
       <div class="col-lg-4 col-md-4">
         <div class="input-group mb-3">
           <input placeholder="Project value (0.00)" title="{{projectHelp.projectValue}}" class="form-control col-sm-12"
-            type="number" maxlength="10" name="projectValue" [(ngModel)]="projectData.projectValue" #projectValue="ngModel"
-            (input)="calculateDisbursements()" id="projectValue" title="{{projectHelp.projectValue}}" required>
+            type="text" pattern="[0-9,]*" oninput="validity.valid || (value = this.value.slice(0, -1))" name="projectValue" [(ngModel)]="projectData.projectValue" #projectValue="ngModel"
+            (input)="onProjectValueInput($event)" [appNumberFormat]="projectData.projectValue" id="projectValue" title="{{projectHelp.projectValue}}" required>
           <div *ngIf="isProjectSourceAvailable" class="input-group-append">
             <button class="btn btn-success" title="Source data available" (click)="showProjectSource(basicDataSource.PROJECT_VALUE)" type="button"><i
                 class="fa fa-database"></i></button>
@@ -569,8 +569,8 @@
             <div *ngIf="currentSource == basicDataSource.PROJECT_VALUE" class="form-group">
               <label>Project value</label>
               <div class="input-group mb-3">
-                <input type="number" class="form-control" name="projectValue" [(ngModel)]="projectData.projectValue"
-                  #projectValue="ngModel" (input)="calculateDisbursements()" required />
+                <input type="text" pattern="[0-9,]*" oninput="validity.valid || (value = this.value.slice(0, -1))" class="form-control" name="projectValue" [(ngModel)]="projectData.projectValue"
+                  #projectValue="ngModel" (input)="onProjectValueInput($event)" [appNumberFormat]="projectData.projectValue" required />
                 <span *ngIf="projectData.projectValue != totalDisbursementsValue" class="margin-left-2"
                   tooltip="{{invalidDisbursementsMessage}}" [options]="tooltipOptions">
                   <button class="btn btn-danger" type="button"><i class="fa fa-times-circle"></i></button>

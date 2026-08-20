@@ -338,6 +338,17 @@ export class FundingComponent implements OnInit, OnChanges, OnDestroy {
     this.resetFundingForm();
   }
 
+  onFundingAmountInput(event: any) {
+    const input = event.target;
+    let value = input.value;
+    if (value && typeof value === 'string' && value.includes(',')) {
+      const cleaned = value.replace(/,/g, '');
+      this.fundingModel.fundingAmount = parseFloat(cleaned) || 0;
+    } else {
+      this.fundingModel.fundingAmount = parseFloat(value) || 0;
+    }
+  }
+
   CalculateFundsPercentage(): void {
     this.fundingModel.fundsPercentage = this.projectData.projectValue ? ((this.fundingModel.fundingAmount ?? 0) / this.projectData.projectValue) * 100 : undefined;
   }
@@ -458,19 +469,12 @@ export class FundingComponent implements OnInit, OnChanges, OnDestroy {
    * Validates that at least one funding entry exists
    */
   proceedToNext() {
-    if (this.fundingList.length === 0) {
-      this.errorMessage = 'Please add at least one funding entry before proceeding.';
-      this.errorModal.openModal()
-      return;
-    }
-    else if(!this.isSaved) {
+    if (this.fundingList.length > 0 && !this.isSaved) {
       this.errorMessage = 'Please save the funding entries before proceeding.';
       this.errorModal.openModal()
       return;
     }
-    else {
-      this.proceedToFinancials.emit()
-    }
+    this.proceedToFinancials.emit()
   }
 
   /**
