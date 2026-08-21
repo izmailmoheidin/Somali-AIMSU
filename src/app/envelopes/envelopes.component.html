@@ -1,0 +1,90 @@
+<div class="container-fluid view-area">
+  <block-ui>
+
+    <div class="row">
+      <div class="col-md-12">
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link active btn-info" data-toggle="tab">Envelopes list</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-body">
+          <form class="form-signin" #searchForm="ngForm">
+            <div class="row">
+              <div class="col-lg-3 col-md-3">
+                <select class="form-control" [(ngModel)]="selectedOrganization" name="organization"
+                  (change)="onOrganizationChange()">
+                  <option value="">-- All organizations --</option>
+                  <option *ngFor="let org of organizationsList" [value]="org.organizationName">{{org.organizationName}}</option>
+                </select>
+              </div>
+              <div class="col-lg-3 col-md-3">
+                <select class="form-control" [(ngModel)]="selectedEnvelopeType" name="envelopeType"
+                  (change)="onEnvelopeTypeChange()">
+                  <option value="">-- All envelope types --</option>
+                  <option *ngFor="let type of envelopeTypesList" [value]="type.typeName">{{type.typeName}}</option>
+                </select>
+              </div>
+              <div class="col-lg-3 col-md-3">
+                <select class="form-control" [(ngModel)]="selectedYear" name="year"
+                  (change)="onYearChange()">
+                  <option value="">-- All years --</option>
+                  <option *ngFor="let year of yearsList" [value]="year.financialYear">{{year.label}}</option>
+                </select>
+              </div>
+              <div class="col-lg-3 col-md-3">
+                <input type="text" class="form-control" placeholder="Search funder or type..."
+                  [(ngModel)]="searchText" name="search" (input)="onSearchInput()" />
+              </div>
+            </div>
+            <div class="row margin-top-10" *ngIf="isAnyFilterSet">
+              <div class="col-md-12">
+                <button type="button" class="btn btn-primary" (click)="resetFilters()">Reset filters</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="row text-center" *ngIf="isLoading">
+      <div class="col-md-12">
+        <img src="assets/images/loader-md.gif" /><span>&nbsp;Loading...</span>
+      </div>
+    </div>
+
+    <div *ngIf="filteredList.length > 0" class="row">
+      <div class="col margin-top-10">
+        <table class="table table-bordered table-stripped">
+          <tr>
+            <th>Organization</th>
+            <th>Envelope type</th>
+            <th>Financial year</th>
+            <th class="text-right">Amount</th>
+            <th>Currency</th>
+          </tr>
+          <tr *ngFor="let env of filteredList | paginate: { itemsPerPage: pagingSize, currentPage: p, id: 'p' }">
+            <td>{{env.funderName}}</td>
+            <td>{{env.envelopeType}}</td>
+            <td>{{env.year}}</td>
+            <td class="text-right">{{formatNumber(env.amount)}}</td>
+            <td>{{env.currency}}</td>
+          </tr>
+        </table>
+        <pagination-controls (pageChange)="p = $event" id="p"></pagination-controls>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && filteredList.length == 0" class="row">
+      <div class="col-md-12 margin-top-10">
+        <p class="text-info"><i>No envelopes to show</i></p>
+      </div>
+    </div>
+
+  </block-ui>
+</div>

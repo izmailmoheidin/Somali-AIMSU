@@ -76,6 +76,7 @@ import { ManageEnvelopeTypeComponent } from './manage-envelope-type/manage-envel
 import { EnvelopeTypesComponent } from './envelope-types/envelope-types.component';
 import { DeleteEnvelopeTypeComponent } from './delete-envelope-type/delete-envelope-type.component';
 import { EnvelopeReportComponent } from './report-components/envelope-report/envelope-report.component';
+import { EnvelopesComponent } from './envelopes/envelopes.component';
 import { OrganisationsReportComponent } from './report-components/organisations-report/organisations-report.component';
 import { DataBackupComponent } from './data-backup/data-backup.component';
 import { AllProjectsReportComponent } from './report-components/all-projects-report/all-projects-report.component';
@@ -216,6 +217,7 @@ const routes: Routes = [
   { path: 'operations', component: OperationsDashboardComponent },
   { path: 'ai-assistant', component: AIAssistantComponent },
   { path: 'my-organization', component: MyOrganizationComponent },
+  { path: 'envelopes', component: EnvelopesComponent, canActivate: [AuthGuard] },
   { path: 'state-profile/:id', component: StateProfileComponent, canActivate: [AuthGuard] },
   { path: '**', component: NotFoundComponent }
 ];

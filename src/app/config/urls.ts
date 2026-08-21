@@ -165,6 +165,7 @@ export const urls = {
 	getDefaultSectors: "Sector/GetDefaultSectors",
 	envelopeTypeUrl: "EnvelopeType",
 	envelopeUrl: "Envelope",
+	envelopeAllUrl: "Envelope/All",
 	markersUrl: "Marker",
 	activeMarkersUrl: "Marker/GetActive",
 	markerProjects: "Project/GetMarkerProjects/",

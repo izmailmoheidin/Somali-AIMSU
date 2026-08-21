@@ -19,6 +19,12 @@ export class EnvelopeService {
                 catchError(this.storeService.handleError<any>('Envelope')));
         }
 
+        getAllEnvelopesFlat() {
+            var url = this.urlHelper.getEnvelopeAllUrl();
+            return this.httpClient.get(url, httpOptions).pipe(
+                catchError(this.storeService.handleError<any>('All Envelopes')));
+        }
+
         addEnvelope(model: any) {
             var url = this.urlHelper.getEnvelopeUrl();
             return this.httpClient.post(url,

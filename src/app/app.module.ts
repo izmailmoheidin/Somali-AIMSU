@@ -77,6 +77,7 @@ import { DeleteSectorComponent } from './delete-sector/delete-sector.component';
 import { SectorMappingsComponent } from './sector-mappings/sector-mappings.component';
 import { ExrateSettingsComponent } from './exrate-settings/exrate-settings.component';
 import { EnvelopeComponent } from './envelope/envelope.component';
+import { EnvelopesComponent } from './envelopes/envelopes.component';
 import { ManageMarkersComponent } from './manage-markers/manage-markers.component';
 import { MarkersComponent } from './markers/markers.component';
 import { DeleteMarkerComponent } from './delete-marker/delete-marker.component';
@@ -209,6 +210,7 @@ import { NumberFormatDirective } from './shared/number-format.directive';
         SectorTypesComponent,
         ExrateSettingsComponent,
         EnvelopeComponent,
+        EnvelopesComponent,
         ManageMarkersComponent,
         MarkersComponent,
         DeleteMarkerComponent,

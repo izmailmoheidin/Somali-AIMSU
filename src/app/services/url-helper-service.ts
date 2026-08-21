@@ -776,6 +776,10 @@ export class UrlHelperService {
         return (this.BASE_URL + urlsList.urls.envelopeUrl);
     }
 
+    getEnvelopeAllUrl() {
+        return (this.BASE_URL + urlsList.urls.envelopeAllUrl);
+    }
+
     getUserApprovedRequestsUrl() {
         return (this.BASE_URL + urlsList.urls.userApprovedRequests);
     }
