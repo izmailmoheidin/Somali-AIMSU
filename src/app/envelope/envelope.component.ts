@@ -32,6 +32,8 @@ export class EnvelopeComponent implements OnInit {
   isError: boolean = false;
   isLoading: boolean = true;
   errorMessage: string = '';
+  showMessage: boolean = false;
+  infoMessage: string = '';
   selectedCurrency: string = null;
   exchangeRate: number = 0;
   oldExchangeRate: number = 0;
@@ -252,6 +254,11 @@ export class EnvelopeComponent implements OnInit {
           this.calculateYearlyTotal();
         }
         this.blockUI.stop();
+      },
+      error => {
+        this.blockUI.stop();
+        this.errorMessage = 'Unable to load envelope data. Please ensure your account is associated with a valid organization.';
+        this.errorModal.openModal();
       }
     );
   }
@@ -294,6 +301,12 @@ export class EnvelopeComponent implements OnInit {
       return false;
     }
 
+    if (!this.envelopeData || !this.envelopeData.envelopeBreakupsByType || this.envelopeData.envelopeBreakupsByType.length === 0) {
+      this.errorMessage = 'No envelope data available to save. Please ensure your account is associated with a valid organization.';
+      this.errorModal.openModal();
+      return false;
+    }
+
     var envelopeBreakups = [];
     this.envelopeData.envelopeBreakupsByType.forEach((b) => {
       var eTypeId = b.envelopeTypeId;
@@ -315,9 +328,15 @@ export class EnvelopeComponent implements OnInit {
     this.blockUI.start('Saving envelope...');
     this.envelopeService.addEnvelope(model).subscribe(
       data => {
-        if (data) {
-        }
         this.blockUI.stop();
+        this.infoMessage = 'Envelope data saved successfully';
+        this.showMessage = true;
+        setTimeout(() => { this.showMessage = false; }, 3000);
+      },
+      error => {
+        this.blockUI.stop();
+        this.errorMessage = 'An error occurred while saving envelope data. Please try again.';
+        this.errorModal.openModal();
       }
     );
   }
