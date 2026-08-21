@@ -78,7 +78,21 @@ export class ProjectFinishComponent implements OnInit {
       return;
     }
     this.showValidation = false;
-    this.finishProject();
+    if (this.projectId && this.projectId > 0) {
+      this.blockUI.start('Finishing project...');
+      this.projectService.notifyProjectCreated(String(this.projectId)).subscribe(
+        data => {
+          this.blockUI.stop();
+          this.finishProject();
+        },
+        error => {
+          this.blockUI.stop();
+          this.finishProject();
+        }
+      );
+    } else {
+      this.finishProject();
+    }
   }
 
   finishProject() {

@@ -1020,4 +1020,8 @@ export class UrlHelperService {
     getAIAssistantAskUrl() {
         return (this.BASE_URL + urlsList.urls.aiAssistantAsk);
     }
+
+    getNotifyProjectCreatedUrl(id: string) {
+        return (this.BASE_URL + urlsList.urls.notifyProjectCreatedUrl + id);
+    }
 }

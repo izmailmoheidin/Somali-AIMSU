@@ -231,6 +231,13 @@ export class ProjectService {
     );
   }
 
+  notifyProjectCreated(projectId: string) {
+    var url = this.urlHelper.getNotifyProjectCreatedUrl(projectId);
+    return this.httpClient.post(url, {}, httpOptions).pipe(
+      catchError(this.storeService.handleError<any>('Notify Project Created'))
+    );
+  }
+
   getProjectDeletionActiveRequests() {
     var url = this.urlHelper.getProjectDeletionActiveRequestsUrl();
     return this.httpClient.get(url, httpOptions).pipe(
