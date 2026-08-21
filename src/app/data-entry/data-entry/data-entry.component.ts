@@ -254,6 +254,13 @@ export class DataEntryComponent implements OnInit {
       result => {
         if (result && result.projectProfile) {
           var data = result.projectProfile;
+          this.currentProjectFunders = [];
+          this.currentProjectImplementers = [];
+          this.currentProjectSectors = [];
+          this.currentProjectLocations = [];
+          this.currentProjectDisbursements = [];
+          this.currentProjectDocuments = [];
+          this.currentProjectMarkers = [];
           this.projectData.title = data.title;
           this.projectData.description = data.description;
           this.projectData.startDate =  this.formatDateToYMD(data.startDate);
@@ -472,6 +479,10 @@ export class DataEntryComponent implements OnInit {
   }
 
   showFinish() {
+    if (this.activeProjectId && this.activeProjectId != 0) {
+      this.isProjectLoading = true;
+      this.loadProjectData(this.activeProjectId);
+    }
     this.manageTabsDisplay(this.tabConstants.FINISH);
   }
 
