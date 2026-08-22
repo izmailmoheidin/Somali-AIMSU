@@ -222,19 +222,17 @@ export class EnvelopeComponent implements OnInit {
   getExchangeRateForCurrency() {
     if (this.model.currency) {
       var exRate = this.exchangeRates.filter(e => e.currency == this.model.currency);
-      if (this.model.exchangeRate > 0) {
-        if (exRate.length > 0) {
-          if (this.model.exchangeRate > 0) {
-            this.envelopeData.envelopeBreakupsByType.forEach((b) => {
-              b.yearlyBreakup.forEach((y) => {
-                y.amount = parseFloat((y.amount * (exRate[0].rate / this.model.exchangeRate)).toString()).toFixed(2);
-              });
+      if (exRate.length > 0) {
+        if (this.model.exchangeRate > 0) {
+          this.envelopeData.envelopeBreakupsByType.forEach((b) => {
+            b.yearlyBreakup.forEach((y) => {
+              y.amount = parseFloat((y.amount * (exRate[0].rate / this.model.exchangeRate)).toString()).toFixed(2);
             });
-          }
+          });
+          this.model.exchangeRate = exRate[0].rate;
+        } else {
           this.model.exchangeRate = exRate[0].rate;
         }
-      } else {
-        this.model.exchangeRate = exRate[0].rate;
       }
     } else {
       this.model.exchangeRate = 1;
@@ -321,7 +319,7 @@ export class EnvelopeComponent implements OnInit {
 
     var model = {
       currency: this.model.currency,
-      exchangeRate: parseFloat(this.model.exchangeRate),
+      exchangeRate: parseFloat(this.model.exchangeRate) || 1,
       envelopeBreakups: envelopeBreakups
     }
 
