@@ -312,7 +312,7 @@ export class EnvelopeComponent implements OnInit {
         envelopeBreakups.push({
           envelopeTypeId: parseInt(eTypeId),
           year: parseInt(y.year),
-          amount: parseFloat(y.amount)
+          amount: parseFloat(y.amount) || 0
         });
       });
     });
