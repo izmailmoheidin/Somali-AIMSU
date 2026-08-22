@@ -1,4 +1,8 @@
 /* Tighten nav bar so all items fit on one line at common laptop widths */
+.navbar .navbar-nav {
+  flex-wrap: nowrap !important;
+}
+
 .navbar .nav-link {
   padding-left: 0.35rem !important;
   padding-right: 0.35rem !important;
@@ -16,5 +20,6 @@
 @media (max-width: 767.98px) {
   .navbar-expand-sm .navbar-nav {
     flex-direction: column;
+    flex-wrap: wrap !important;
   }
 }
