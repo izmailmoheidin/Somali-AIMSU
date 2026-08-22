@@ -1,13 +1,15 @@
-/* Tighten nav bar spacing so all items fit on one line */
+/* Tighten nav bar so all items fit on one line at common laptop widths */
 .navbar .nav-link {
-  padding-left: 0.5rem !important;
-  padding-right: 0.5rem !important;
+  padding-left: 0.35rem !important;
+  padding-right: 0.35rem !important;
   white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .navbar-brand {
   margin-right: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  padding-left: 0.5rem;
 }
 
 /* Collapse to hamburger below md (768px) instead of sm (576px) */
