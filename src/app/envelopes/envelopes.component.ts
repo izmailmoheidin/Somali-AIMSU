@@ -21,6 +21,7 @@ export class EnvelopesComponent implements OnInit {
   yearsList: any = [];
   isLoading: boolean = false;
   pagingSize: number = Settings.rowsPerPage;
+  p: number = 1;
 
   selectedOrganization: string = '';
   selectedEnvelopeType: string = '';

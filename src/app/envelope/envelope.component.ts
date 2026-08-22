@@ -329,9 +329,14 @@ export class EnvelopeComponent implements OnInit {
     this.envelopeService.addEnvelope(model).subscribe(
       data => {
         this.blockUI.stop();
-        this.infoMessage = 'Envelope data saved successfully';
-        this.showMessage = true;
-        setTimeout(() => { this.showMessage = false; }, 3000);
+        if (data === true) {
+          this.infoMessage = 'Envelope data saved successfully';
+          this.showMessage = true;
+          setTimeout(() => { this.showMessage = false; }, 3000);
+        } else {
+          this.errorMessage = 'An error occurred while saving envelope data. The save may have failed — please reload the page to verify.';
+          this.errorModal.openModal();
+        }
       },
       error => {
         this.blockUI.stop();
