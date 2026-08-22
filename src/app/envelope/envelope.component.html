@@ -49,7 +49,7 @@
                     <tr *ngFor="let envelope of envelopeData.envelopeBreakupsByType">
                       <td>{{envelope.envelopeType}}</td>
                       <td *ngFor="let yr of envelope.yearlyBreakup;let i = index">
-                        <input type="number" name="{{envelope.envelopeTypeId}}-{{i}}" min="1" max="99999999999" (keyup)="preventInput($event)"  class="form-control" [(ngModel)]="yr.amount" required />
+                        <input type="number" name="{{envelope.envelopeTypeId}}-{{i}}" min="0" max="99999999999" (keyup)="preventInput($event)"  class="form-control" [(ngModel)]="yr.amount" />
                       </td>
                     </tr>
                     <tr>
