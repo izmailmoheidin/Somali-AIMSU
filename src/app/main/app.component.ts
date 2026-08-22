@@ -24,6 +24,7 @@ export class AppComponent {
   currentUrl: string = null;
   isHomeActive: boolean = false;
   isProjectsActive: boolean = false;
+  isEnvelopesActive: boolean = false;
   isMyOrgActive: boolean = false;
   isReportActive: boolean = false;
   isManagementActive: boolean = false;
@@ -74,6 +75,7 @@ export class AppComponent {
         this.isHomeActive = false;
         this.isManagementActive = false;
         this.isProjectsActive = false;
+        this.isEnvelopesActive = false;
         this.isMyOrgActive = false;
         this.isEntryActive = false;
         this.isReportActive = false;
@@ -93,6 +95,12 @@ export class AppComponent {
         case this.menuConstants.PROJECTS:
           setTimeout(() => {
             this.isProjectsActive = true;
+          }, 1000);
+          break;
+
+        case this.menuConstants.ENVELOPES:
+          setTimeout(() => {
+            this.isEnvelopesActive = true;
           }, 1000);
           break;
 

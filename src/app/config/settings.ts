@@ -19,7 +19,8 @@ export const Settings = {
         help: 7,
         notifications: 8,
         backup: 9,
-        myOrganization: 10
+        myOrganization: 10,
+        envelopes: 11
     },
     dropDownMenusConstants: {
         HOME: 1,
@@ -31,7 +32,8 @@ export const Settings = {
         HELP: 7,
         NOTIFICATIONS: 8,
         BACKUP: 9,
-        MY_ORGANIZATION: 10
+        MY_ORGANIZATION: 10,
+        ENVELOPES: 11
     },
     pdfPrintPageHeight: 1550,
     pdfPrintPageHeightLandscape: 1250,

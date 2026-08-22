@@ -13,6 +13,9 @@
               projects</a>
           </li>
           <li *ngIf="isLoggedIn" class="nav-item">
+            <a class="nav-link" [routerLink]="['/envelopes']" [ngClass]="{'active-link': isEnvelopesActive == true}">View Envelopes</a>
+          </li>
+          <li *ngIf="isLoggedIn" class="nav-item">
             <a class="nav-link" [routerLink]="['/my-organization']" [ngClass]="{'active-link': isMyOrgActive == true}">My Organization</a>
           </li>
           <li *ngIf="isLoggedIn" class="nav-item dropdown">
@@ -33,7 +36,6 @@
               <a class="dropdown-item" [routerLink]="['/time-trend-report']">Time trend report</a>
               <a class="dropdown-item" [routerLink]="['/budget-report']">Budget report</a>
               <a class="dropdown-item" [routerLink]="['/envelope-report']">Envelope report</a>
-              <a class="dropdown-item" [routerLink]="['/envelopes']">View envelopes</a>
               <a class="dropdown-item" [routerLink]="['/data-export']">Data export</a>
               <a class="dropdown-item" [routerLink]="['/organisations-report']">Organization Report</a>
               <a class="dropdown-item" [routerLink]="['/map']">Map</a>
